@@ -1,0 +1,10 @@
+server/venv/
+**/__pycache__/
+*.pyc
+server/.env
+server/uploads/
+client/node_modules/
+client/.next/
+client/.env.local
+.DS_Store
+.claude/

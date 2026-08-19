@@ -1,0 +1,281 @@
+/* cards.css — Card tile styles, wallet stack effect */
+
+/* ─── Top Cards Grid ─────────────────────────────────────────── */
+.top-cards-section {
+  padding: 48px 0;
+}
+
+.top-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  position: relative;
+}
+
+@media (max-width: 960px) {
+  .top-cards-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 620px) {
+  .top-cards-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── Card Tile ─────────────────────────────────────────── */
+.card-tile {
+  position: relative;
+  border-radius: 20px;
+  padding: 28px 24px;
+  color: white;
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.4),
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 -1px 0 rgba(0,0,0,0.2) inset;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.3s;
+  cursor: default;
+}
+
+/* Wallet stack depth effect */
+.card-tile::before {
+  content: "";
+  position: absolute;
+  inset: -2px -4px -8px;
+  background: inherit;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.5;
+  filter: brightness(0.7);
+}
+
+.card-tile::after {
+  content: "";
+  position: absolute;
+  inset: -4px -8px -14px;
+  background: inherit;
+  border-radius: inherit;
+  z-index: -2;
+  opacity: 0.25;
+  filter: brightness(0.5);
+}
+
+.card-tile:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow:
+    0 16px 48px rgba(0,0,0,0.5),
+    0 1px 0 rgba(255,255,255,0.1) inset;
+}
+
+/* Gold shimmer overlay on hover */
+.card-tile::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(212,160,23,0.08), transparent);
+  transform: skewX(-15deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card-tile:hover::before { left: 120%; }
+
+/* ─── Tile Rank Badge ─────────────────────────────────────────── */
+.tile-rank {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 100px;
+  padding: 4px 10px;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.03em;
+}
+
+/* ─── Card Chip Decoration ─────────────────────────────────────────── */
+.tile-chip {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 36px;
+  height: 28px;
+  background: linear-gradient(135deg, #d4a017 0%, #f0c94a 40%, #a87c10 100%);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  opacity: 0.8;
+}
+
+/* ─── Tile Header ─────────────────────────────────────────── */
+.tile-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  margin-top: 8px;
+}
+
+.tile-name {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.25;
+}
+
+.tile-issuer {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+}
+
+.tile-fee {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.tile-fee .mono {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gold-light);
+}
+
+.tile-fee .fee-label {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.5);
+  margin-left: 1px;
+}
+
+.fee-free {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #4ade80;
+}
+
+/* ─── Score Bar ─────────────────────────────────────────── */
+.score-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold-light));
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ─── Tile Highlight ─────────────────────────────────────────── */
+.tile-highlight {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.5;
+  margin-bottom: 14px;
+  font-weight: 400;
+}
+
+/* ─── Tile Tags ─────────────────────────────────────────── */
+.tile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+/* ─── Eligibility Info ─────────────────────────────────────────── */
+.tile-eligibility {
+  display: flex;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  margin-top: 12px;
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+  flex-wrap: wrap;
+}
+
+/* ─── Why Card Button & Box ─────────────────────────────────────────── */
+.tile-actions {
+  margin-top: 16px;
+}
+
+.why-btn {
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.85);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.why-btn:hover {
+  background: rgba(212,160,23,0.2);
+  border-color: rgba(212,160,23,0.5);
+  color: white;
+}
+
+.why-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.why-box {
+  margin-top: 14px;
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.why-text-content {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.6;
+}
+
+.why-error {
+  font-size: 0.82rem;
+  color: #fca5a5;
+}
+
+/* ─── Skeleton Loading ─────────────────────────────────────────── */
+.why-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-line {
+  height: 12px;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.08) 25%,
+    rgba(255,255,255,0.15) 50%,
+    rgba(255,255,255,0.08) 75%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: shimmer 1.4s infinite;
+  width: 100%;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

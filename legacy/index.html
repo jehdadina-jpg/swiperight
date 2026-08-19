@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SwipeRight — India's Smart Credit Card Recommender</title>
+  <meta name="description" content="Find the perfect Indian credit card for your lifestyle. Compare 150+ real cards from HDFC, SBI, ICICI, Axis, Amex and more. AI-powered spend analysis and personalized recommendations." />
+  <meta name="keywords" content="Indian credit cards, best credit card India, credit card comparison, HDFC credit card, SBI credit card, cashback card India" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/cards.css" />
+  <link rel="stylesheet" href="css/chat.css" />
+
+  <style>
+    /* Inline critical overrides for ultra-smooth UX */
+    .section-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      border: 1px solid var(--border-gold);
+      border-radius: 100px;
+      padding: 3px 10px;
+      margin-bottom: 12px;
+    }
+
+    .spend-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: block;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 2px;
+      background: var(--navy-3);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 24px;
+      width: fit-content;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      font-weight: 500;
+      padding: 8px 20px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--navy-4);
+      color: var(--text-primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .tab-btn:hover:not(.active) { color: var(--text-secondary); }
+
+    .issuer-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .issuer-tag {
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      background: var(--navy-3);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--text-muted);
+    }
+
+    .filter-section-title {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Spend results grid */
+    #spend-results h4 {
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      color: var(--teal-light);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .spend-auto-msg {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: rgba(47,111,98,0.1);
+      border-radius: 8px;
+      border: 1px solid rgba(47,111,98,0.2);
+    }
+
+    /* Priority rank display */
+    .priority-display {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .priority-display-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .priority-display-num {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--navy);
+      background: var(--gold);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Footer */
+    .site-footer {
+      background: var(--navy-2);
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      margin-top: 80px;
+    }
+
+    .footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-link {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-link:hover { color: var(--gold); }
+
+    /* Heuristic note */
+    .heuristic-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-top: 6px;
+    }
+
+    /* View toggle for Top/Table */
+    .view-toggle {
+      display: flex;
+      gap: 2px;
+      background: var(--navy-3);
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    .view-toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      padding: 7px 16px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .view-toggle-btn.active {
+      background: var(--navy-4);
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 600px) {
+      .stats-row { gap: 24px; }
+      .stat-num { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">💳</div>
+        <div>
+          <span class="logo-text">SwipeRight</span>
+          <span class="logo-tagline">India's Smart Card Advisor</span>
+        </div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--text-muted)">
+        150 real cards · AI-powered · Free to use
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════ HERO ═══════════════════ -->
+  <section class="hero">
+    <div class="container">
+      <p class="section-tag">🇮🇳 Made for India</p>
+      <h1 class="hero-title">Find Your Perfect<br>Credit Card</h1>
+      <p class="hero-sub">Analyse your spending, set priorities, and discover the best card from 150 real Indian credit cards — powered by Gemini AI.</p>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-num">150</span>
+          <div class="stat-label">Real Indian Cards</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">16</span>
+          <div class="stat-label">Issuers Covered</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">AI</span>
+          <div class="stat-label">Spend Analysis</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">0₹</span>
+          <div class="stat-label">Cost to Use</div>
+        </div>
+      </div>
+
+      <!-- API Key Bar -->
+      <div class="api-key-bar" style="max-width:680px;margin:0 auto 24px">
+        <div class="api-key-label">
+          🔑 Gemini API Key
+          <span style="font-size:0.72rem;color:var(--teal-light)">(free tier)</span>
+        </div>
+        <input
+          type="password"
+          id="api-key-input"
+          class="api-key-input"
+          placeholder="Paste your Gemini API key (AIza…)"
+          autocomplete="off"
+        />
+        <button id="api-key-save" class="btn-save-key" onclick="saveApiKey()">Save</button>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener"
+           style="font-size:0.75rem;color:var(--teal-light);text-decoration:none;white-space:nowrap">
+          Get free key →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ DISCLAIMER ═══════════════════ -->
+  <div class="container">
+    <div class="disclaimer">
+      ⚠️ <strong>Disclaimer:</strong> Fees, rates, and benefits change frequently — always verify with the issuer before applying.
+      Churn risk labels and eligibility figures are <strong>heuristic estimates, not verified data</strong>.
+      This tool is <strong>not financial advice</strong>. Cards shown are real but data may be outdated.
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SPEND ANALYSIS ═══════════════════ -->
+  <section id="spend-section" class="section">
+    <div class="container">
+      <div class="section-tag">✨ AI Feature</div>
+      <h2 class="section-title">Analyse My Spending</h2>
+      <p class="section-subtitle">Paste your transactions (any format) and let Gemini classify them into spending categories, then auto-set your priorities.</p>
+
+      <div class="spend-card">
+        <h3>📋 Paste Your Transactions</h3>
+        <p class="spend-hint">Examples: "Swiggy 4200, Uber 1800, Amazon 6000, petrol 2500, flight 8000" or CSV format or plain English descriptions.</p>
+        <textarea
+          id="spend-input"
+          class="spend-textarea"
+          placeholder="Swiggy 4200, Uber 1800, Amazon 6000, petrol 2500, Indigo flight 8000, gym 1500, Zomato 2200, BigBasket 3800…"
+        ></textarea>
+        <button id="spend-analyze-btn" class="btn-primary" onclick="handleSpendAnalysis()">
+          ✨ Analyse My Spend
+        </button>
+        <div id="spend-error"></div>
+
+        <div id="spend-results" style="display:none">
+          <h4>📊 Your Spending Breakdown</h4>
+          <div id="spend-bars"></div>
+          <div class="spend-auto-msg">
+            ✅ Your top 3 categories have been set as priorities below. Scroll down to see your recommended cards!
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════════ PRIORITIES ═══════════════════ -->
+  <section id="priority-section" class="section">
+    <div class="container">
+      <div class="section-tag">🎯 Personalise</div>
+      <h2 class="section-title">Your Spending Priorities</h2>
+      <p class="section-subtitle">Tap up to 3 categories in order of importance. Cards are scored: 1st pick = 3pts, 2nd = 2pts, 3rd = 1pt.</p>
+
+      <div class="priority-tags" id="priority-tags">
+        <button class="priority-tag-btn" data-tag="cashback">
+          <span>💰</span> Cashback
+          <span class="priority-rank"></span>
+        </button>
+        <button class="priority-tag-btn" data-tag="fuel">
+          <span>⛽</span> Fuel
+          <span class="priority-rank"></span>
+        </button>
+        <button class="priority-tag-btn" data-tag="travel">
+          <span>✈️</span> Travel
+          <span class="priority-rank"></span>
+        </button>
+        <button class="priority-tag-btn" data-tag="dining">
+          <span>🍽️</span> Dining
+          <span class="priority-rank"></span>
+        </button>
+        <button class="priority-tag-btn" data-tag="shopping">
+          <span>🛍️</span> Shopping
+          <span class="priority-rank"></span>
+        </button>
+        <button class="priority-tag-btn" data-tag="lifestyle">
+          <span>🌟</span> Lifestyle
+          <span class="priority-rank"></span>
+        </button>
+        <button class="priority-tag-btn" data-tag="premium">
+          <span>👑</span> Premium
+          <span class="priority-rank"></span>
+        </button>
+      </div>
+
+      <p class="priority-hint">Tap once = 1st priority (3x weight), twice more to rank 2nd & 3rd. Tap again to remove.</p>
+
+      <div class="priority-display">
+        <div class="priority-display-item">
+          <div class="priority-display-num">1</div>
+          <span class="selected-priority" id="sel-1" style="display:none"></span>
+          <span id="sel-1-empty" style="font-size:0.8rem;color:var(--text-muted)">Not set</span>
+        </div>
+        <div class="priority-display-item">
+          <div class="priority-display-num" style="background:var(--text-muted);color:var(--navy)">2</div>
+          <span class="selected-priority" id="sel-2" style="display:none"></span>
+          <span id="sel-2-empty" style="font-size:0.8rem;color:var(--text-muted)">Not set</span>
+        </div>
+        <div class="priority-display-item">
+          <div class="priority-display-num" style="background:#c87028;color:var(--navy)">3</div>
+          <span class="selected-priority" id="sel-3" style="display:none"></span>
+          <span id="sel-3-empty" style="font-size:0.8rem;color:var(--text-muted)">Not set</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════════ FILTERS ═══════════════════ -->
+  <section class="section" id="filters-section">
+    <div class="container">
+      <div class="section-tag">🔍 Filter</div>
+      <h2 class="section-title">Refine Your Search</h2>
+      <p class="section-subtitle">Narrow down to cards that match your budget and eligibility.</p>
+
+      <div class="filters-bar">
+        <!-- Max Fee -->
+        <div class="filter-group">
+          <label>
+            Max Annual Fee
+            <span class="filter-value" id="fee-value">Any</span>
+          </label>
+          <input type="range" id="fee-slider" min="0" max="60000" step="500" value="60000" />
+        </div>
+
+        <!-- Network -->
+        <div class="filter-group">
+          <label>Card Network</label>
+          <select id="network-select" class="filter-select">
+            <option value="All">All Networks</option>
+            <option value="Visa">Visa</option>
+            <option value="Mastercard">Mastercard</option>
+            <option value="RuPay">RuPay</option>
+            <option value="Amex">American Express</option>
+            <option value="Diners">Diners Club</option>
+          </select>
+        </div>
+
+        <!-- Annual Income -->
+        <div class="filter-group">
+          <label>
+            My Annual Income
+            <span class="filter-value" id="income-value">Any</span>
+          </label>
+          <input type="range" id="income-slider" min="0" max="3000000" step="50000" value="3000000" />
+          <div class="heuristic-note">⚠️ Eligibility is a heuristic estimate</div>
+        </div>
+
+        <!-- CIBIL Score -->
+        <div class="filter-group">
+          <label>
+            My CIBIL Score
+            <span class="filter-value" id="cibil-value">Any</span>
+          </label>
+          <input type="range" id="cibil-slider" min="300" max="900" step="10" value="300" />
+          <div class="heuristic-note">⚠️ Eligibility is a heuristic estimate</div>
+        </div>
+
+        <!-- Search -->
+        <div class="filter-group" style="grid-column: 1 / -1">
+          <label>Search Cards</label>
+          <input type="text" id="search-input" class="search-input" placeholder="Search by name, issuer, or category…" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════════ TOP 3 CARDS ═══════════════════ -->
+  <section class="top-cards-section" id="top-cards-section">
+    <div class="container">
+      <div class="section-tag">🏆 Top Picks</div>
+      <h2 class="section-title">Your Top 3 Recommendations</h2>
+      <p class="section-subtitle">
+        Ranked by your priorities. Click <strong>"Why this card?"</strong> for an AI explanation (requires API key).
+      </p>
+      <div id="top-cards" class="top-cards-grid">
+        <!-- Rendered by ui.js -->
+        <div class="no-results" style="grid-column:1/-1">
+          Set your priorities above to see personalised recommendations.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════════ FULL TABLE ═══════════════════ -->
+  <section class="section" id="all-cards-section">
+    <div class="container">
+      <div class="table-header-row">
+        <div>
+          <div class="section-tag">📋 All Cards</div>
+          <h2 class="section-title" style="margin-bottom:0">Browse All Cards</h2>
+        </div>
+        <span class="card-count-badge" id="card-count">150 cards</span>
+      </div>
+      <p class="section-subtitle">Sort by any column. Select up to 3 cards to compare side-by-side.</p>
+
+      <div class="table-wrapper">
+        <table class="card-table">
+          <thead>
+            <tr>
+              <th style="width:70px">Compare</th>
+              <th data-sort="name">Card Name</th>
+              <th data-sort="network">Network</th>
+              <th data-sort="fee">Annual Fee</th>
+              <th>Categories</th>
+              <th data-sort="minIncome">Min Income</th>
+              <th data-sort="minCibil">Min CIBIL</th>
+              <th data-sort="churnRisk">Churn Risk ⚠️</th>
+            </tr>
+          </thead>
+          <tbody id="card-table-body">
+            <!-- Rendered by ui.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ COMPARE TRAY ═══════════════════ -->
+  <div class="compare-tray" id="compare-tray">
+    <span class="compare-tray-label">Comparing</span>
+    <span class="compare-count-badge" id="compare-count">0</span>
+    <span class="compare-tray-label">cards</span>
+    <button class="btn-compare" onclick="openCompareModal()">⚖️ Compare</button>
+    <button class="btn-clear-compare" onclick="clearCompare()">✕ Clear</button>
+  </div>
+
+  <!-- ═══════════════════ COMPARE MODAL ═══════════════════ -->
+  <div class="modal-overlay" id="compare-modal" onclick="handleModalClick(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">⚖️ Side-by-Side Comparison</div>
+        <button class="btn-close-modal" onclick="closeCompareModal()">✕</button>
+      </div>
+      <div class="modal-body" id="compare-modal-body">
+        <!-- Rendered dynamically -->
+      </div>
+      <div style="padding:16px 24px;border-top:1px solid var(--border);background:var(--navy-3)">
+        <p style="font-size:0.75rem;color:var(--text-muted)">
+          ⚠️ Churn risk and eligibility figures are heuristic estimates, not verified data. Always check with the issuer.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CHATBOT ═══════════════════ -->
+  <!-- FAB Button -->
+  <button class="chat-fab" id="chat-toggle-btn" title="Chat with SwipeRight AI">
+    💬
+    <span class="chat-fab-label">Ask SwipeRight AI</span>
+  </button>
+
+  <!-- Chat Panel -->
+  <div class="chat-panel" id="chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-avatar">🤖</div>
+        <div class="chat-header-info">
+          <div class="chat-name">SwipeRight AI</div>
+          <div class="chat-status">
+            <span class="chat-status-dot"></span>
+            Online · Gemini 2.0 Flash
+          </div>
+        </div>
+      </div>
+      <button class="chat-close-btn" id="chat-close-btn">✕</button>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <!-- Messages rendered dynamically -->
+    </div>
+
+    <div class="chat-disclaimer">
+      Not financial advice · Always verify with issuer
+    </div>
+
+    <div class="chat-input-area">
+      <input
+        type="text"
+        id="chat-input"
+        class="chat-input"
+        placeholder="Ask about any card…"
+        autocomplete="off"
+      />
+      <button class="chat-send-btn" id="chat-send-btn" title="Send">
+        ➤
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-text">
+        <strong style="color:var(--gold)">SwipeRight</strong> — India's smart credit card recommender.<br>
+        Data is for informational purposes only. Not affiliated with any bank or issuer.<br>
+        <span style="color:var(--text-muted);font-size:0.72rem">⚠️ Always verify fees, benefits & eligibility directly with the issuer before applying.</span>
+      </div>
+      <div class="footer-links">
+        <span class="footer-link" style="color:var(--text-muted);font-size:0.75rem">Built with Gemini AI · 150 real cards · No backend</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+  <!-- Data first (defines CARDS, TAG_LABELS, etc.) -->
+  <script src="js/data.js"></script>
+  <!-- Core logic (no DOM dependency) -->
+  <script src="js/score.js"></script>
+  <!-- Gemini API wrapper -->
+  <script src="js/gemini.js"></script>
+  <!-- UI rendering -->
+  <script src="js/ui.js"></script>
+  <!-- Filter state management -->
+  <script src="js/filters.js"></script>
+  <!-- AI features -->
+  <script src="js/spend.js"></script>
+  <script src="js/whycard.js"></script>
+  <!-- Chatbot -->
+  <script src="js/chat.js"></script>
+
+  <script>
+    // ─── App Bootstrap ───────────────────────────────────────
+    function saveApiKey() {
+      const key = document.getElementById("api-key-input").value.trim();
+      sessionStorage.setItem("gemini_api_key", key);
+      showToast("✓ API key saved for this session");
+    }
+
+    // Patch updatePriorityUI to handle empty slot display
+    const _origUpdatePriorityUI = updatePriorityUI;
+    updatePriorityUI = function() {
+      _origUpdatePriorityUI();
+      // Show/hide "Not set" placeholders
+      [1, 2, 3].forEach(i => {
+        const tag = state.priorities[i - 1];
+        const empty = document.getElementById(`sel-${i}-empty`);
+        const filled = document.getElementById(`sel-${i}`);
+        if (tag) {
+          if (empty) empty.style.display = "none";
+          if (filled) {
+            filled.style.display = "inline-flex";
+            filled.textContent = TAG_LABELS[tag] || tag;
+            filled.style.background = TAG_COLORS[tag] + "33";
+            filled.style.color = TAG_COLORS[tag];
+          }
+        } else {
+          if (empty) empty.style.display = "";
+          if (filled) filled.style.display = "none";
+        }
+      });
+    };
+
+    // Main render function called whenever state changes
+    window.rerenderAll = function() {
+      const cards = getFilteredSortedCards();
+      window._priorities = state.priorities;
+
+      // Update fee label when at max
+      const feeSlider = document.getElementById("fee-slider");
+      const feeVal = document.getElementById("fee-value");
+      if (feeSlider && parseInt(feeSlider.value) >= 60000) {
+        feeVal.textContent = "Any";
+      }
+
+      renderTopCards(cards, state.priorities);
+      renderTable(cards);
+    };
+
+    // ─── Modal click-outside to close ───────────────────────
+    function handleModalClick(e) {
+      if (e.target === document.getElementById("compare-modal")) {
+        closeCompareModal();
+      }
+    }
+
+    // ─── Init ───────────────────────────────────────
+    document.addEventListener("DOMContentLoaded", () => {
+      // Load saved API key
+      const savedKey = sessionStorage.getItem("gemini_api_key");
+      if (savedKey) {
+        document.getElementById("api-key-input").value = savedKey;
+      }
+
+      // Init all modules
+      initFilters();
+      initTableSort();
+      initChatbot();
+
+      // Initial render (show all cards sorted by fee asc with no priorities)
+      rerenderAll();
+
+      // Animate score bars after first render
+      setTimeout(() => {
+        document.querySelectorAll(".score-fill").forEach(el => {
+          const w = el.style.width;
+          el.style.width = "0%";
+          requestAnimationFrame(() => {
+            el.style.transition = "width 0.8s cubic-bezier(0.4,0,0.2,1)";
+            el.style.width = w;
+          });
+        });
+      }, 200);
+    });
+  </script>
+</body>
+</html>
