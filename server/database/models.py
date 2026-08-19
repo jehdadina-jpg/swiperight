@@ -60,7 +60,7 @@ class Statement(Base):
     __tablename__ = "statements"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     file_name = Column(String, nullable=False)
     file_type = Column(String, nullable=False)  # PDF or CSV
     status = Column(SQLEnum(StatementStatus), default=StatementStatus.UPLOADED)
@@ -165,7 +165,7 @@ class Recommendation(Base):
     __tablename__ = "recommendations"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     card_id = Column(Integer, ForeignKey("cards.id"), nullable=False)
     
     # Category totals used for recommendation
@@ -196,7 +196,7 @@ class ChatSession(Base):
     __tablename__ = "chat_sessions"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     recommendation_id = Column(Integer, ForeignKey("recommendations.id"))
     
     # Message history stored as JSON

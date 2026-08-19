@@ -9,8 +9,7 @@ from typing import Optional
 import logging
 
 from database.session import get_db
-from database.models import User, Statement, CategoryTotal, Recommendation
-from core.security import get_current_user
+from database.models import Statement, CategoryTotal, Recommendation
 from ml.recommendation_engine import recommendation_engine
 from schemas.recommendation import (
     RecommendationRequest,
@@ -26,7 +25,6 @@ logger = logging.getLogger(__name__)
 async def get_recommendation(
     request: RecommendationRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     """
     Get ONE credit card recommendation based on spending analysis
@@ -34,10 +32,8 @@ async def get_recommendation(
     SRS Rule 1: Returns EXACTLY ONE card, never multiple cards
     """
 
-    # Get statement and category totals (scoped to current user)
     statement = db.query(Statement).filter(
-        Statement.id == request.statement_id,
-        Statement.user_id == current_user.id
+        Statement.id == request.statement_id
     ).first()
     
     if not statement:
@@ -69,8 +65,6 @@ async def get_recommendation(
         for ct in category_totals_db
     }
     
-    logger.info(f"Getting recommendation for user {current_user.id}")
-    
     try:
         # Get recommendation (returns ONE card only)
         recommended_card, calculation_details = recommendation_engine.recommend_card(
@@ -90,7 +84,6 @@ async def get_recommendation(
         
         # Save recommendation to database
         recommendation_record = Recommendation(
-            user_id=current_user.id,
             card_id=recommended_card.id,
             category_totals=category_totals,
             yearly_spend=calculation_details["yearly_spend"],
@@ -157,14 +150,13 @@ async def get_recommendation(
 @router.get("/history", response_model=list)
 async def get_recommendation_history(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
     limit: int = 10
 ):
-    """Get recommendation history for the current user"""
+    """Get recommendation history"""
 
-    recommendations = db.query(Recommendation).filter(
-        Recommendation.user_id == current_user.id
-    ).order_by(Recommendation.created_at.desc()).limit(limit).all()
+    recommendations = db.query(Recommendation).order_by(
+        Recommendation.created_at.desc()
+    ).limit(limit).all()
     
     return [
         {
@@ -182,13 +174,11 @@ async def get_recommendation_history(
 async def get_recommendation_by_id(
     recommendation_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
-    """Get a specific recommendation by ID (scoped to current user)"""
+    """Get a specific recommendation by ID"""
 
     recommendation = db.query(Recommendation).filter(
-        Recommendation.id == recommendation_id,
-        Recommendation.user_id == current_user.id
+        Recommendation.id == recommendation_id
     ).first()
     
     if not recommendation:

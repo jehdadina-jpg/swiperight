@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Upload, CreditCard, TrendingUp, Sparkles, MessageSquare, LogOut } from "lucide-react";
+import { Upload, CreditCard, TrendingUp, Sparkles, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UploadZone } from "@/components/upload-zone";
-import { uploadAPI, recommendationAPI, authAPI } from "@/lib/api";
-import { useRouter } from "next/navigation";
+import { uploadAPI, recommendationAPI } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
-import { AUTH_TOKEN_KEY } from "@/lib/constants";
 
 interface UploadedStatement {
   id: number;
@@ -28,22 +26,10 @@ interface RecommendationResult {
 }
 
 export default function Dashboard() {
-  const router = useRouter();
   const [uploadedStatement, setUploadedStatement] = useState<UploadedStatement | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [recommendation, setRecommendation] = useState<RecommendationResult | null>(null);
   const [loading, setLoading] = useState(false);
-  // Lazily read the token once on mount (client-only); avoids calling
-  // setState synchronously from inside an effect.
-  const [hasToken] = useState<boolean>(
-    () => typeof window !== "undefined" && !!localStorage.getItem(AUTH_TOKEN_KEY)
-  );
-
-  useEffect(() => {
-    if (!hasToken) {
-      router.replace("/login");
-    }
-  }, [hasToken, router]);
 
   const handleUpload = async (file: File) => {
     try {
@@ -68,19 +54,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleLogout = () => {
-    authAPI.logout();
-    router.push("/login");
-  };
-
-  if (!hasToken) {
-    return (
-      <div className="min-h-screen bg-navy flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-gold border-t-transparent" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-navy">
       {/* Header */}
@@ -94,10 +67,6 @@ export default function Dashboard() {
                 <p className="text-xs text-muted-foreground">AI-Powered Card Advisor</p>
               </div>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
           </div>
         </div>
       </header>

@@ -2,8 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from database.session import get_db
-from database.models import User, ChatSession, Recommendation
-from core.security import get_current_user
+from database.models import Recommendation
 from core.config import settings
 import google.generativeai as genai
 
@@ -20,13 +19,10 @@ class ChatResponse(BaseModel):
 async def send_chat_message(
     chat: ChatMessage,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     """Send chat message"""
-    # Get recommendation context (scoped to current user)
     rec = db.query(Recommendation).filter(
-        Recommendation.id == chat.recommendation_id,
-        Recommendation.user_id == current_user.id
+        Recommendation.id == chat.recommendation_id
     ).first()
     
     if not rec:

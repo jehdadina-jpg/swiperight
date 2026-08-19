@@ -3,6 +3,7 @@ server/venv/
 *.pyc
 server/.env
 server/uploads/
+server/*.db
 client/node_modules/
 client/.next/
 client/.env.local

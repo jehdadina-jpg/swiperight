@@ -12,8 +12,7 @@ from datetime import datetime
 import logging
 
 from database.session import get_db
-from database.models import User, Statement, Transaction, CategoryTotal, StatementStatus, TransactionType
-from core.security import get_current_user
+from database.models import Statement, Transaction, CategoryTotal, StatementStatus, TransactionType
 from core.config import settings
 from core.limiter import limiter
 from services.statement_parser import parse_statement
@@ -33,7 +32,6 @@ async def upload_statement(
     request: Request,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     """Upload bank statement (PDF or CSV)"""
 
@@ -71,7 +69,6 @@ async def upload_statement(
         
         # Create statement record
         statement = Statement(
-            user_id=current_user.id,
             file_name=file.filename,
             file_type=file_ext[1:].upper(),  # Remove dot and uppercase
             status=StatementStatus.UPLOADED
@@ -108,14 +105,11 @@ async def upload_statement(
 async def analyze_statement(
     statement_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     """Analyze uploaded statement - parse and categorize transactions"""
 
-    # Get statement (scoped to current user)
     statement = db.query(Statement).filter(
-        Statement.id == statement_id,
-        Statement.user_id == current_user.id
+        Statement.id == statement_id
     ).first()
     
     if not statement:
@@ -267,13 +261,12 @@ async def analyze_statement(
 @router.get("/history", response_model=List[StatementUploadResponse])
 async def get_upload_history(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
     limit: int = 10
 ):
-    """Get statement upload history for the current user"""
+    """Get statement upload history"""
 
-    statements = db.query(Statement).filter(
-        Statement.user_id == current_user.id
-    ).order_by(Statement.upload_date.desc()).limit(limit).all()
+    statements = db.query(Statement).order_by(
+        Statement.upload_date.desc()
+    ).limit(limit).all()
 
     return statements

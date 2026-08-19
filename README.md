@@ -7,12 +7,6 @@ A modern web application that analyzes bank statements and recommends **ONE** pe
 > HTML/JS/CSS prototype has been moved to `legacy/` and is kept for reference
 > only — it is not served or maintained.
 
-## 🔐 Authentication
-
-The app requires an account. Register, then log in — the JWT is stored client-side
-and attached automatically to API requests. All statement/recommendation/chat data
-is scoped to the authenticated user.
-
 ### Quick Start (Windows)
 
 **Backend**
@@ -21,7 +15,8 @@ cd server
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
-# copy .env.example to .env and fill in real values (see Environment Variables below)
+# copy .env.example to .env — the default DATABASE_URL uses a local SQLite
+# file, so no database server setup is needed to get started
 python main.py
 ```
 
@@ -32,7 +27,9 @@ npm install
 npm run dev
 ```
 
-Then open `http://localhost:3000`, register an account, and log in.
+Then open `http://localhost:3000`. No account or login is required — upload
+a statement and go. (Registration/login endpoints still exist in the API for
+future use, but nothing on the current frontend requires them.)
 
 ---
 
@@ -55,26 +52,21 @@ Then open `http://localhost:3000`, register an account, and log in.
 
 ---
 
-## 🗄️ Database Setup (Optional)
+## 🗄️ Database Setup
 
-The app works without a database (data is temporary). For permanent storage:
+By default (`server/.env.example`), the app uses a local SQLite file
+(`DATABASE_URL=sqlite:///./swiperight.db`) — no setup required, tables are
+created automatically on first run.
 
+To seed the credit card catalog:
 ```powershell
-# Create PostgreSQL database
-psql -U postgres
-CREATE DATABASE swiperight_db;
-\q
-
-# Seed cards
 cd server
 .\venv\Scripts\activate
 python -m database.seed_cards
 ```
 
-Or use SQLite (edit `server/.env`):
-```
-DATABASE_URL=sqlite:///./swiperight.db
-```
+For Postgres instead, set `DATABASE_URL=postgresql://user:pass@localhost:5432/swiperight_db`
+in `server/.env` and create the database first (`createdb swiperight_db`).
 
 ---
 
@@ -119,7 +111,7 @@ SwipeRight/
 Copy `server/.env.example` to `server/.env` and configure:
 
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/swiperight_db
+DATABASE_URL=sqlite:///./swiperight.db
 
 # Required in production (ENVIRONMENT=production) — the app fails fast at
 # startup if these are missing when ENVIRONMENT=production. In development
@@ -147,10 +139,10 @@ Get a Gemini API key (free): https://aistudio.google.com/app/apikey
 
 ## 🌐 API Endpoints
 
-All endpoints below except `GET /api/cards` and `GET /api/docs` require a
-`Authorization: Bearer <token>` header (obtained from `POST /api/auth/login`).
+No authentication is required to use the app. `POST /api/auth/register` and
+`/login` still exist and issue JWTs, but nothing currently requires the token.
 
-- `POST /api/auth/register` / `POST /api/auth/login` - Create account / sign in
+- `POST /api/auth/register` / `POST /api/auth/login` - Create account / sign in (optional, unused by the frontend)
 - `POST /api/upload/` - Upload statement
 - `POST /api/upload/analyze/{id}` - Analyze statement
 - `GET /api/cards` - Get all cards
@@ -282,9 +274,11 @@ Questions? Open an issue on GitHub!
 
 ## 🔐 Security
 
-- JWT authentication required on all user-data endpoints (upload, analyze,
-  recommendation, chat, history, export); every by-ID lookup is scoped to the
-  authenticated user (returns 404, not 403, for other users' resources)
+- No login is required — all statement/recommendation/chat data is
+  effectively public within a given deployment (anyone with the URL can see
+  any uploaded statement or recommendation by ID). Fine for local/demo use;
+  if you deploy this publicly, re-enable the JWT auth in `core/security.py`
+  (still present, just not wired into the endpoints) before storing real data.
 - `SECRET_KEY`/`AES_KEY` must be set explicitly when `ENVIRONMENT=production`
   (the app refuses to start otherwise)
 - Rate limiting (slowapi) on auth and upload endpoints

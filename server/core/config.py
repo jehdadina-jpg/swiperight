@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # Database
-    DATABASE_URL: str = "postgresql://swiperight:password@localhost:5432/swiperight_db"
+    DATABASE_URL: str = "sqlite:///./swiperight.db"
 
     # JWT
     SECRET_KEY: Optional[str] = None

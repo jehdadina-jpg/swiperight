@@ -2,14 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { AUTH_TOKEN_KEY } from "@/lib/constants";
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    router.push(token ? "/dashboard" : "/login");
+    router.push("/dashboard");
   }, [router]);
 
   return (
