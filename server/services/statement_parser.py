@@ -315,29 +315,36 @@ class StatementParser:
                 merchant = ""
                 amount = 0.0
                 transaction_type = "debit"
-                
-                # Simple heuristic: date is usually first, amount is last or second last
+
+                # Simple heuristic: date is usually first. Statements often
+                # have multiple amount-looking columns (e.g. debit/credit
+                # plus a running balance) - take the FIRST one as the
+                # transaction amount, since a trailing balance column would
+                # otherwise silently overwrite it.
                 for i, cell in enumerate(row):
                     cell_str = str(cell).strip() if cell else ""
-                    
+
                     if not cell_str:
                         continue
-                    
-                    # Try to parse as date
-                    if not date_val:
-                        date_val = self._parse_date(cell_str)
-                    
-                    # Try to parse as amount
+
+                    # Try to parse as date - if this cell IS the date,
+                    # don't also consider it for amount/merchant below
+                    if date_val is None:
+                        parsed = self._parse_date(cell_str)
+                        if parsed:
+                            date_val = parsed
+                            continue
+
                     if self._is_amount(cell_str):
-                        try:
-                            amount = float(self._clean_amount(cell_str))
-                        except:
-                            pass
-                    
-                    # Everything else might be merchant
-                    if not self._is_amount(cell_str) and date_val:
-                        if len(cell_str) > 3 and not merchant:
-                            merchant = cell_str
+                        if amount == 0.0:
+                            try:
+                                amount = float(self._clean_amount(cell_str))
+                            except:
+                                pass
+                        continue
+
+                    if not merchant and len(cell_str) > 3:
+                        merchant = cell_str
                 
                 if date_val and merchant and amount > 0:
                     transactions.append(Transaction(
@@ -358,12 +365,29 @@ class StatementParser:
         """Parse raw text using regex patterns"""
         transactions = []
         
-        # Common patterns for Indian bank statements
+        # Matches DD/MM/YYYY-style dates as well as "1st November 2018"-style
+        # dates (ordinal day + month name), both common on bank statements
+        date_pattern = r'(?:\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,9}\s+\d{4}|\d{2}[-/]\d{2}[-/]\d{2,4})'
+
+        # Amount must include a decimal (cents/paise) - real transaction
+        # amounts always do. Without this, a bare number embedded anywhere
+        # in the merchant text (e.g. "11" from a timestamp like "11:22am")
+        # would wrongly match as the amount.
+        amount_pattern = r'[\d,]+\.\d{2}'
+        # Currency symbols are usually glued directly to the digits with no
+        # space (e.g. "£10.00", or "�" for an undecoded symbol), so the
+        # separator before an amount can't require whitespace.
+        pre_amount = r'[\s₹$£€,�]*'
+
+        # Common patterns for bank statements
         patterns = [
-            # Pattern 1: Date Merchant Amount
-            r'(\d{2}[-/]\d{2}[-/]\d{2,4})\s+(.+?)\s+([\d,]+\.?\d{0,2})\s*(DR|CR)?',
+            # Pattern 1: Date Merchant Amount - lazy merchant match means the
+            # FIRST amount-looking number on the line is captured, which is
+            # normally the transaction amount rather than a trailing running
+            # balance column
+            rf'({date_pattern})\s+(.+?){pre_amount}({amount_pattern})\s*(DR|CR)?',
             # Pattern 2: Date Amount Merchant
-            r'(\d{2}[-/]\d{2}[-/]\d{2,4})\s+([\d,]+\.?\d{0,2})\s+(.+?)(?:\n|$)',
+            rf'({date_pattern}){pre_amount}({amount_pattern})\s+(.+?)(?:\n|$)',
         ]
         
         for pattern in patterns:
@@ -383,7 +407,15 @@ class StatementParser:
                             amount_str = groups[2]
                         
                         amount = float(self._clean_amount(amount_str))
-                        transaction_type = "credit" if (len(groups) > 3 and groups[3] == 'CR') else "debit"
+                        if len(groups) > 3 and groups[3] == 'CR':
+                            transaction_type = "credit"
+                        elif re.match(r'^\s*(?:bank\s+)?credit\b', merchant, re.IGNORECASE):
+                            # Some statements encode direction as a leading
+                            # payment-type word ("Bank Credit ...") rather
+                            # than a DR/CR suffix
+                            transaction_type = "credit"
+                        else:
+                            transaction_type = "debit"
                         
                         if date_val and merchant and amount > 0:
                             transactions.append(Transaction(

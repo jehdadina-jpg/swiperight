@@ -246,15 +246,28 @@ async def analyze_statement(
             "message": "Statement analyzed successfully"
         }
         
+    except ValueError as e:
+        # Parsing found no usable transactions - a problem with the input
+        # file, not a server bug, so this is a 422 rather than a 500
+        logger.warning(f"No transactions parsed for statement {statement_id}: {e}")
+        statement.status = StatementStatus.FAILED
+        statement.error_message = str(e)
+        db.commit()
+
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Couldn't find any transactions in this statement. Try a CSV export, "
+                   "or a PDF with a clear transaction table."
+        )
     except Exception as e:
         logger.error(f"Analysis error: {e}", exc_info=True)
         statement.status = StatementStatus.FAILED
         statement.error_message = str(e)
         db.commit()
-        
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error analyzing statement: {str(e)}"
+            detail="Error analyzing statement"
         )
 
 
