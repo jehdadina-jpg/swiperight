@@ -1,7 +1,7 @@
 # SwipeRight 💳
 ### AI-Powered Credit Card Recommendation Engine
 
-A modern web application that analyzes bank statements and recommends **ONE** perfect credit card from a catalog of Indian credit cards using AI and ML.
+A modern web application that analyzes bank statements (or manually entered spending) and ranks the **top 5** best-fit credit cards from a catalog of Indian credit cards using AI and ML.
 
 > The production frontend is the Next.js app in `client/`. The original static
 > HTML/JS/CSS prototype has been moved to `legacy/` and is kept for reference
@@ -36,9 +36,12 @@ future use, but nothing on the current frontend requires them.)
 ## ✨ Features
 
 - 📊 **Statement Upload** - Drag & drop PDF/CSV bank statements
+- ✍️ **Manual Entry** - Skip the upload entirely and enter estimated yearly spend per category
 - 🤖 **ML Categorization** - Auto-categorize 13 spending categories
-- 💳 **ONE Card** - Get exactly ONE best recommendation (SRS Rule 1)
-- 🔒 **Privacy First** - Files deleted after processing (SRS Rule 2)
+- 🏆 **Top 5 Ranking** - Ranked list of the 5 best-fit cards, not just one
+- 🎛️ **Preferences** - Exclude specific banks, cap the annual fee, or require lounge access
+- 📇 **Card Directory** - Browse, search, and filter every card in the system
+- 🔒 **Privacy First** - Files deleted after processing
 - 💬 **AI Chat** - Ask questions about your recommendation
 - 🎨 **Beautiful UI** - Bloomberg-inspired dark mode dashboard
 
@@ -92,12 +95,13 @@ SwipeRight/
 
 ## 🎯 How It Works
 
-1. **Upload** - User uploads bank statement (PDF/CSV)
-2. **Parse** - Extract transactions with merchant normalization
-3. **Categorize** - ML model assigns 13 spending categories
-4. **Calculate** - Analyze spending patterns and annual fees
-5. **Recommend** - Return ONE best card with detailed reasoning
-6. **Chat** - AI answers questions (category totals only, no raw data)
+1. **Upload or enter spending** - Upload a bank statement (PDF/CSV), or skip straight to manual per-category amounts
+2. **Parse** (upload only) - Extract transactions with merchant normalization
+3. **Categorize** (upload only) - ML model assigns 13 spending categories
+4. **Set preferences** - Optionally exclude banks, cap the annual fee, or require lounge access
+5. **Calculate** - Score every eligible card against the spending pattern
+6. **Recommend** - Return the top 5 cards, ranked, each with its own reasoning
+7. **Chat** - AI answers questions (category totals only, no raw data)
 
 ---
 
@@ -140,8 +144,9 @@ No authentication is required to use the app. `POST /api/auth/register` and
 - `POST /api/auth/register` / `POST /api/auth/login` - Create account / sign in (optional, unused by the frontend)
 - `POST /api/upload/` - Upload statement
 - `POST /api/upload/analyze/{id}` - Analyze statement
-- `GET /api/cards` - Get all cards
-- `POST /api/recommendation` - Get ONE card recommendation
+- `GET /api/cards/` - Browse cards (`search`, `issuer`, `network`, `tag`, `max_annual_fee`, `lounge_access`, `sort_by`, `sort_dir`)
+- `GET /api/cards/issuers` - Distinct issuer names, for bank-exclusion filters
+- `POST /api/recommendation/` - Rank the top N cards (`top_n`, default 5) for either a `statement_id` or `manual_category_totals`, with optional `excluded_issuers` / `max_annual_fee` / `require_lounge_access` preferences
 - `POST /api/chat` - Ask AI questions
 - `GET /api/docs` - Interactive API docs
 

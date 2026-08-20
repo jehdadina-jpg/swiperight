@@ -1,6 +1,6 @@
 """
 Recommendation Engine
-Core pipeline that recommends EXACTLY ONE credit card
+Core pipeline that ranks credit cards by fit for a spending pattern
 Supports: Rule-based, Random Forest, XGBoost, Hybrid Ranking
 """
 
@@ -35,53 +35,60 @@ CATEGORY_TO_TAG_MAP = {
 
 
 class RecommendationEngine:
-    """
-    Recommendation Engine - Returns ONE best credit card
-    Critical: NEVER returns multiple cards (SRS Rule 1)
-    """
+    """Recommendation Engine - ranks credit cards by fit and returns the top N"""
     
     def __init__(self, model_path: Optional[str] = None):
         self.model_path = model_path or "ml/models/recommendation_model.pkl"
         self.model = None
         self._load_model()
     
-    def recommend_card(
+    def recommend_cards(
         self,
         category_totals: Dict[str, float],
         db: Session,
         user_income: Optional[int] = None,
         user_cibil: Optional[int] = None,
-        strategy: str = "hybrid"
-    ) -> Tuple[Card, Dict]:
+        strategy: str = "hybrid",
+        top_n: int = 5,
+        excluded_issuers: Optional[List[str]] = None,
+        max_annual_fee: Optional[float] = None,
+        require_lounge_access: bool = False
+    ) -> List[Tuple[Card, float, Dict]]:
         """
-        Recommend ONE credit card based on spending patterns
-        
+        Rank eligible credit cards by fit for the given spending pattern.
+
         Args:
             category_totals: Dict of category -> total spend
             db: Database session
             user_income: User's annual income (for eligibility)
             user_cibil: User's CIBIL score (for eligibility)
             strategy: 'rule_based', 'ml', or 'hybrid'
-        
+            top_n: how many ranked cards to return
+            excluded_issuers: issuer names to exclude (case-insensitive)
+            max_annual_fee: drop cards above this annual fee
+            require_lounge_access: only consider cards with lounge access
+
         Returns:
-            (recommended_card, calculation_details)
+            List of (card, score, calculation_details), best first, length <= top_n
         """
-        
-        # Calculate yearly spend
+
         total_yearly_spend = sum(category_totals.values())
-        
+
         if total_yearly_spend == 0:
             raise ValueError("Total spending is zero, cannot recommend a card")
-        
-        # Get all eligible cards
-        eligible_cards = self._get_eligible_cards(db, user_income, user_cibil)
-        
+
+        eligible_cards = self._get_eligible_cards(
+            db, user_income, user_cibil,
+            excluded_issuers=excluded_issuers,
+            max_annual_fee=max_annual_fee,
+            require_lounge_access=require_lounge_access
+        )
+
         if not eligible_cards:
             raise ValueError("No eligible cards found for user profile")
-        
+
         logger.info(f"Evaluating {len(eligible_cards)} eligible cards")
-        
-        # Score each card
+
         card_scores = []
         for card in eligible_cards:
             score, details = self._calculate_card_score(
@@ -91,40 +98,52 @@ class RecommendationEngine:
                 strategy
             )
             card_scores.append((card, score, details))
-        
-        # Sort by score descending
+
         card_scores.sort(key=lambda x: x[1], reverse=True)
-        
-        # Return ONLY the top card (SRS Rule 1)
-        best_card, best_score, best_details = card_scores[0]
-        
-        logger.info(f"Recommended card: {best_card.name} with score {best_score:.2f}")
-        
-        return best_card, best_details
-    
+
+        top = card_scores[:top_n]
+        logger.info(f"Top recommendation: {top[0][0].name} with score {top[0][1]:.2f}")
+
+        return top
+
     def _get_eligible_cards(
         self,
         db: Session,
         user_income: Optional[int],
-        user_cibil: Optional[int]
+        user_cibil: Optional[int],
+        excluded_issuers: Optional[List[str]] = None,
+        max_annual_fee: Optional[float] = None,
+        require_lounge_access: bool = False
     ) -> List[Card]:
-        """Get cards that user is eligible for"""
-        
+        """Get cards that user is eligible for and hasn't excluded via preferences"""
+
         query = db.query(Card).filter(Card.is_active == True)
-        
+
         # Apply income filter if provided
         if user_income is not None:
             query = query.filter(
                 (Card.min_income == None) | (Card.min_income <= user_income)
             )
-        
+
         # Apply CIBIL filter if provided
         if user_cibil is not None:
             query = query.filter(
                 (Card.min_cibil == None) | (Card.min_cibil <= user_cibil)
             )
-        
-        return query.all()
+
+        if max_annual_fee is not None:
+            query = query.filter(Card.annual_fee <= max_annual_fee)
+
+        if require_lounge_access:
+            query = query.filter(Card.lounge_access == True)
+
+        cards = query.all()
+
+        if excluded_issuers:
+            excluded_lower = {issuer.strip().lower() for issuer in excluded_issuers if issuer.strip()}
+            cards = [c for c in cards if c.issuer.lower() not in excluded_lower]
+
+        return cards
     
     def _calculate_card_score(
         self,

@@ -89,14 +89,20 @@ export const uploadAPI = {
 // Recommendation API
 export const recommendationAPI = {
   getRecommendation: async (data: {
-    statement_id: number;
+    statement_id?: number;
+    manual_category_totals?: Record<string, number>;
     user_income?: number;
     user_cibil?: number;
+    strategy?: string;
+    excluded_issuers?: string[];
+    max_annual_fee?: number;
+    require_lounge_access?: boolean;
+    top_n?: number;
   }) => {
     const res = await api.post(API_ENDPOINTS.GET_RECOMMENDATION, data);
     return res.data;
   },
-  
+
   getById: async (id: number) => {
     const res = await api.get(`${API_ENDPOINTS.GET_RECOMMENDATION}${id}`);
     return res.data;
@@ -105,13 +111,29 @@ export const recommendationAPI = {
 
 // Cards API
 export const cardsAPI = {
-  getAll: async (limit: number = 100) => {
-    const res = await api.get(`${API_ENDPOINTS.GET_CARDS}?limit=${limit}`);
+  getAll: async (params: {
+    limit?: number;
+    offset?: number;
+    search?: string;
+    issuer?: string;
+    network?: string;
+    tag?: string;
+    max_annual_fee?: number;
+    lounge_access?: boolean;
+    sort_by?: string;
+    sort_dir?: string;
+  } = {}) => {
+    const res = await api.get(API_ENDPOINTS.GET_CARDS, { params });
     return res.data;
   },
-  
+
   getById: async (id: number) => {
     const res = await api.get(API_ENDPOINTS.GET_CARD(id));
+    return res.data;
+  },
+
+  getIssuers: async (): Promise<string[]> => {
+    const res = await api.get(API_ENDPOINTS.GET_ISSUERS);
     return res.data;
   },
 };

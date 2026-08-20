@@ -73,6 +73,7 @@ export const API_ENDPOINTS = {
   // Cards
   GET_CARDS: "/api/cards/",
   GET_CARD: (id: number) => `/api/cards/${id}`,
+  GET_ISSUERS: "/api/cards/issuers",
 
   // Chat
   SEND_MESSAGE: "/api/chat/",
