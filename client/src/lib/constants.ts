@@ -63,19 +63,19 @@ export const API_ENDPOINTS = {
   FORGOT_PASSWORD: "/api/auth/forgot-password",
   
   // Upload & Analysis
-  UPLOAD_STATEMENT: "/api/upload",
+  UPLOAD_STATEMENT: "/api/upload/",
   ANALYZE_STATEMENT: "/api/upload/analyze/{statement_id}",
-  
+
   // Recommendations
-  GET_RECOMMENDATION: "/api/recommendation",
+  GET_RECOMMENDATION: "/api/recommendation/",
   GET_RECOMMENDATIONS_HISTORY: "/api/recommendation/history",
-  
+
   // Cards
-  GET_CARDS: "/api/cards",
+  GET_CARDS: "/api/cards/",
   GET_CARD: (id: number) => `/api/cards/${id}`,
-  
+
   // Chat
-  SEND_MESSAGE: "/api/chat",
+  SEND_MESSAGE: "/api/chat/",
   GET_CHAT_HISTORY: "/api/chat/history",
   
   // Export

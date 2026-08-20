@@ -1,7 +1,7 @@
 # SwipeRight 💳
 ### AI-Powered Credit Card Recommendation Engine
 
-A modern web application that analyzes bank statements and recommends **ONE** perfect credit card from 140+ Indian credit cards using AI and ML.
+A modern web application that analyzes bank statements and recommends **ONE** perfect credit card from a catalog of Indian credit cards using AI and ML.
 
 > The production frontend is the Next.js app in `client/`. The original static
 > HTML/JS/CSS prototype has been moved to `legacy/` and is kept for reference
@@ -55,15 +55,10 @@ future use, but nothing on the current frontend requires them.)
 ## 🗄️ Database Setup
 
 By default (`server/.env.example`), the app uses a local SQLite file
-(`DATABASE_URL=sqlite:///./swiperight.db`) — no setup required, tables are
-created automatically on first run.
-
-To seed the credit card catalog:
-```powershell
-cd server
-.\venv\Scripts\activate
-python -m database.seed_cards
-```
+(`DATABASE_URL=sqlite:///./swiperight.db`) — no setup required. Tables are
+created and the credit card catalog is seeded automatically on first run
+(`server/main.py` startup); `python -m database.seed_cards` also exists if
+you need to run it manually (it's a no-op if cards already exist).
 
 For Postgres instead, set `DATABASE_URL=postgresql://user:pass@localhost:5432/swiperight_db`
 in `server/.env` and create the database first (`createdb swiperight_db`).
@@ -204,15 +199,11 @@ docker-compose up
 
 ## 📊 Card Database
 
-140+ Indian credit cards included:
-
-- Premium: Infinia, Magnus, Vistara Infinite
-- Travel: Club Vistara, Diners Black, Axis Atlas
-- Cashback: Amazon Pay ICICI, Flipkart Axis, SBI Cashback
-- Fuel: BPCL Octane, HPCL Coral, IndianOil Axis
-- Shopping: Myntra Kotak, HDFC Regalia, Citi Rewards
-
-More cards added regularly!
+23 real Indian credit cards are seeded by default (`server/database/seed_cards.py`),
+spanning HDFC, SBI, ICICI, Axis, IDFC FIRST, American Express, Standard
+Chartered, Kotak, and AU Bank — premium travel cards, cashback cards, and
+lifetime-free options. Add more by extending the `cards_data` list in that
+file; the seeder skips cards that already exist.
 
 ---
 

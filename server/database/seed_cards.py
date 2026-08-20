@@ -1,6 +1,6 @@
 """
 Seed Credit Cards Database
-140+ Real Indian Credit Cards
+Real Indian Credit Cards
 """
 
 from sqlalchemy.orm import Session

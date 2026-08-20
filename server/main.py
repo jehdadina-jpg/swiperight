@@ -16,7 +16,8 @@ from slowapi.errors import RateLimitExceeded
 from api.v1.api import api_router
 from core.config import settings
 from core.limiter import limiter
-from database.session import engine, Base
+from database.session import engine, Base, SessionLocal
+from database.seed_cards import seed_cards
 
 # Configure logging
 logging.basicConfig(
@@ -36,7 +37,14 @@ async def lifespan(app: FastAPI):
     # Create tables
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created/verified")
-    
+
+    # Seed the card catalog if empty (no-op if already seeded)
+    db = SessionLocal()
+    try:
+        seed_cards(db)
+    finally:
+        db.close()
+
     yield
     
     # Shutdown

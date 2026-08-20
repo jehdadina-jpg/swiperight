@@ -98,7 +98,7 @@ export const recommendationAPI = {
   },
   
   getById: async (id: number) => {
-    const res = await api.get(`${API_ENDPOINTS.GET_RECOMMENDATION}/${id}`);
+    const res = await api.get(`${API_ENDPOINTS.GET_RECOMMENDATION}${id}`);
     return res.data;
   },
 };

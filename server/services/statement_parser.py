@@ -212,41 +212,49 @@ class StatementParser:
             
             # Extract amount and type
             amount = 0.0
-            transaction_type = "debit"
-            
+            transaction_type = None
+
             # Try debit columns
             for col in debit_cols:
                 if col in row and row[col]:
                     try:
                         amount = float(self._clean_amount(row[col]))
-                        transaction_type = "debit"
-                        break
+                        if amount != 0.0:
+                            transaction_type = "debit"
+                            break
                     except:
                         pass
-            
+
             # Try credit columns if no debit found
-            if amount == 0.0:
+            if transaction_type is None:
                 for col in credit_cols:
                     if col in row and row[col]:
                         try:
                             amount = float(self._clean_amount(row[col]))
-                            transaction_type = "credit"
-                            break
+                            if amount != 0.0:
+                                transaction_type = "credit"
+                                break
                         except:
                             pass
-            
-            # Try generic amount column
-            if amount == 0.0:
+
+            # Try generic amount column - direction must come from a separate
+            # type/Dr-Cr column, a CR/DR suffix, or the amount's sign, since a
+            # single amount column doesn't imply "debit" on its own
+            if transaction_type is None:
                 for col in amount_cols:
                     if col in row and row[col]:
+                        raw_value = str(row[col]).strip()
                         try:
-                            amount = abs(float(self._clean_amount(row[col])))
-                            # Try to determine type from amount sign or other indicators
-                            break
+                            signed_amount = float(self._clean_amount(raw_value))
                         except:
-                            pass
-            
-            if amount == 0.0:
+                            continue
+                        if signed_amount == 0.0:
+                            continue
+                        amount = abs(signed_amount)
+                        transaction_type = self._infer_type(row, raw_value, signed_amount)
+                        break
+
+            if amount == 0.0 or transaction_type is None:
                 return None
             
             return Transaction(
@@ -261,6 +269,32 @@ class StatementParser:
             logger.debug(f"Error parsing CSV row: {e}")
             return None
     
+    def _infer_type(self, row: Dict, raw_amount: str, signed_amount: float) -> str:
+        """Determine debit/credit when only a generic amount column is present"""
+        type_cols = [
+            'Type', 'type', 'Transaction Type', 'Txn Type',
+            'Dr/Cr', 'DR/CR', 'Dr Cr', 'Indicator'
+        ]
+        for col in type_cols:
+            if col in row and row[col]:
+                val = str(row[col]).strip().lower()
+                if val in ('cr', 'credit', 'c', 'deposit'):
+                    return 'credit'
+                if val in ('dr', 'debit', 'd', 'withdrawal'):
+                    return 'debit'
+
+        if re.search(r'\bcr\b', raw_amount, re.IGNORECASE):
+            return 'credit'
+        if re.search(r'\bdr\b', raw_amount, re.IGNORECASE):
+            return 'debit'
+
+        # Bare signed amount with no other signal: negative = outflow (debit)
+        if signed_amount < 0:
+            return 'debit'
+
+        # No explicit signal at all - preserve prior default behavior
+        return 'debit'
+
     def _parse_table(self, table: List[List]) -> List[Transaction]:
         """Parse table extracted from PDF"""
         transactions = []
