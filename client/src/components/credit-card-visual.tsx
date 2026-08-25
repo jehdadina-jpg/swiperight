@@ -5,6 +5,13 @@ import { motion } from "framer-motion";
 import { Heart, Plane, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSavedCards, type SavedCard } from "@/lib/savedCards";
+import { NetworkMark } from "@/components/network-mark";
+
+/** Deterministic, clearly-fake masked number so the same card always shows the same digits */
+function maskedNumber(id: number): string {
+  const seed = String(Math.abs(id) * 7919).padStart(4, "0").slice(-4);
+  return `•••• •••• •••• ${seed}`;
+}
 
 // Deterministic gradient per issuer so the same bank always looks the same
 const ISSUER_GRADIENTS: Record<string, string> = {
@@ -33,9 +40,11 @@ interface CreditCardVisualProps {
   showSave?: boolean;
   rank?: number;
   footer?: React.ReactNode;
+  /** Drops the chip/masked-number detail for small decorative renders where there isn't room for it */
+  compact?: boolean;
 }
 
-export function CreditCardVisual({ card, className, tilt = true, showSave = true, rank, footer }: CreditCardVisualProps) {
+export function CreditCardVisual({ card, className, tilt = true, showSave = true, rank, footer, compact = false }: CreditCardVisualProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [rotate, setRotate] = useState({ x: 0, y: 0 });
   const [pointer, setPointer] = useState({ x: 0.5, y: 0.3 });
@@ -113,32 +122,47 @@ export function CreditCardVisual({ card, className, tilt = true, showSave = true
         )}
 
         {/* Chip - embossed */}
-        <div
-          className="mt-8 w-9 h-7 rounded-md bg-gradient-to-br from-foil-light to-foil-dark relative"
-          style={{ boxShadow: "inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -1px 1px rgba(0,0,0,0.4)" }}
-        >
-          <div className="absolute inset-1 rounded-sm border border-black/20" />
-        </div>
-
-        <div className="mt-3 flex items-center gap-2 text-white/60">
-          <Wifi className="w-4 h-4 rotate-90" />
-          {card.lounge_access && <Plane className="w-3.5 h-3.5" />}
-        </div>
-
-        <div className="absolute bottom-5 left-5 right-5">
-          <p
-            className="font-heading font-semibold text-lg leading-tight truncate"
-            style={{ textShadow: "0 1px 0 rgba(255,255,255,0.15), 0 -1px 1px rgba(0,0,0,0.4)" }}
+        {!compact && (
+          <div
+            className="mt-7 w-8 h-6 rounded-md bg-gradient-to-br from-foil-light to-foil-dark relative"
+            style={{ boxShadow: "inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -1px 1px rgba(0,0,0,0.4)" }}
           >
-            {card.name}
-          </p>
-          <div className="flex items-center justify-between mt-1">
-            <p className="text-xs text-white/70 truncate">{card.issuer}</p>
-            <p className="text-xs uppercase tracking-wider text-white/70 font-mono">{card.network}</p>
+            <div className="absolute inset-1 rounded-sm border border-black/20" />
+          </div>
+        )}
+
+        {!compact && (
+          <div className="mt-2 flex items-center gap-3 text-white/60">
+            <Wifi className="w-3.5 h-3.5 rotate-90" />
+            {card.lounge_access && <Plane className="w-3.5 h-3.5" />}
+            <p
+              className="font-mono text-[11px] sm:text-xs tracking-[0.1em] text-white/80"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}
+            >
+              {maskedNumber(card.id)}
+            </p>
+          </div>
+        )}
+
+        <div className={cn("absolute left-5 right-5 flex items-end justify-between gap-2", compact ? "bottom-4" : "bottom-5")}>
+          <div className="min-w-0">
+            <p
+              className={cn(
+                "font-heading font-semibold leading-tight truncate",
+                compact ? "text-sm" : "text-base sm:text-lg"
+              )}
+              style={{ textShadow: "0 1px 0 rgba(255,255,255,0.15), 0 -1px 1px rgba(0,0,0,0.4)" }}
+            >
+              {card.name}
+            </p>
+            {!compact && <p className="text-xs text-white/70 truncate mt-0.5">{card.issuer}</p>}
+          </div>
+          <div className={cn("shrink-0 drop-shadow-md", compact && "scale-75 origin-bottom-right")}>
+            <NetworkMark network={card.network} />
           </div>
         </div>
 
-        {card.churn_risk && (
+        {!compact && card.churn_risk && (
           <div
             className={cn(
               "absolute top-4 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded-full border font-medium uppercase tracking-wide",

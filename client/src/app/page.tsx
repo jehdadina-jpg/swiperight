@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, X, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/magnetic";
 import { CreditCardVisual } from "@/components/credit-card-visual";
@@ -16,8 +16,8 @@ const SHOWCASE_CARDS = [
   { id: 3, name: "HDFC Infinia Metal", issuer: "HDFC Bank", network: "Visa", annual_fee: 12500, joining_fee: 12500, reward_rate: 3.3, tags: ["premium"], highlight: null, lounge_access: true, churn_risk: "medium" },
 ];
 
-const ROTATIONS = [-11, 3, 15];
-const OFFSETS_Y = [24, 0, 30];
+const FAN_ROTATIONS = [-9, 4, 12];
+const FAN_LIFT = [8, -6, 10];
 
 const STATS = [
   { value: 23, suffix: "", label: "cards in the catalog, real Indian issuers" },
@@ -48,6 +48,7 @@ export default function Home() {
     <div className="min-h-screen bg-ink">
       <TopBar />
       <Hero />
+      <WhySwipeRight />
       <StatsStrip />
       <HowItWorks />
       <FeatureRows />
@@ -56,9 +57,29 @@ export default function Home() {
   );
 }
 
+function CardFan({ cards, cardWidth = 168 }: { cards: typeof SHOWCASE_CARDS; cardWidth?: number }) {
+  return (
+    <div className="flex items-center justify-center gap-3">
+      {cards.map((card, i) => (
+        <motion.div
+          key={card.id}
+          initial={{ opacity: 0, y: 24, rotate: 0 }}
+          whileInView={{ opacity: 1, y: FAN_LIFT[i] ?? 0, rotate: FAN_ROTATIONS[i] ?? 0 }}
+          whileHover={{ y: (FAN_LIFT[i] ?? 0) - 10, rotate: 0, zIndex: 10, transition: { duration: 0.2 } }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          style={{ width: cardWidth, zIndex: i }}
+        >
+          <CreditCardVisual card={card} tilt={false} showSave={false} compact />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 function TopBar() {
   return (
-    <header className="border-b border-white/[0.06]">
+    <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-ink/75 backdrop-blur-lg">
       <div className="container mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-baseline gap-2">
           <span className="font-heading italic text-xl">Swipe</span>
@@ -102,26 +123,9 @@ function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="relative h-[280px] lg:h-[340px] lg:-mr-24"
+            className="lg:-mr-16"
           >
-            {SHOWCASE_CARDS.map((card, i) => (
-              <motion.div
-                key={card.id}
-                className="absolute left-1/2 top-1/2 w-56"
-                initial={{ opacity: 0, x: 100, rotate: 14, y: "-50%" }}
-                animate={{
-                  opacity: 1,
-                  x: `calc(-50% + ${(i - 1) * 15}%)`,
-                  y: `calc(-50% + ${OFFSETS_Y[i]}px)`,
-                  rotate: ROTATIONS[i],
-                }}
-                whileHover={{ y: "-58%", rotate: 0, zIndex: 10, transition: { duration: 0.25 } }}
-                transition={{ delay: 0.4 + i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                style={{ zIndex: i }}
-              >
-                <CreditCardVisual card={card} tilt={false} showSave={false} />
-              </motion.div>
-            ))}
+            <CardFan cards={SHOWCASE_CARDS} cardWidth={168} />
           </motion.div>
         </div>
 
@@ -148,6 +152,54 @@ function Hero() {
             </Magnetic>
           </div>
         </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function WhySwipeRight() {
+  return (
+    <section className="py-20 md:py-28 border-t border-white/[0.06] bg-ink-2/40">
+      <div className="container mx-auto px-6">
+        <div className="grid md:grid-cols-[auto_1fr] gap-10 md:gap-16 items-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center gap-4 shrink-0 mx-auto md:mx-0"
+          >
+            <div className="w-14 h-14 rounded-full border border-destructive/40 bg-destructive/10 flex items-center justify-center">
+              <X className="w-6 h-6 text-destructive" />
+            </div>
+            <div className="w-10 h-px bg-white/15" />
+            <div className="w-14 h-14 rounded-full border border-ember/40 bg-ember/10 flex items-center justify-center">
+              <Heart className="w-6 h-6 text-ember fill-ember/30" />
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="font-mono text-xs tracking-[0.2em] text-verdigris-light uppercase mb-3">
+              The name, explained
+            </p>
+            <h2 className="font-heading text-3xl md:text-4xl mb-4">
+              Why <span className="italic text-ember">swipe right</span>?
+            </h2>
+            <p className="text-muted-foreground leading-relaxed max-w-2xl">
+              Dating apps solved this years ago: a wall of forty profiles is worse than
+              one good match. Swipe right means yes. Left means move on — no essay required.
+              Credit card research has never gotten the same treatment. It&apos;s spreadsheets,
+              comparison tables, and a dozen open tabs. SwipeRight is what that decision
+              looks like when it&apos;s built like a match, not a research project: a stack
+              of five real contenders, and a gesture instead of a spreadsheet.
+            </p>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -224,20 +276,8 @@ function FeatureRows() {
           body="Your top five arrive as a real, draggable deck — pass or shortlist each one. It's the one thing every other card-comparison tool skips, despite the name on the tin."
           reverse={false}
         >
-          <div className="flex items-center justify-center gap-4 py-8">
-            {[-8, 0, 8].map((r, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0, rotate: r }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="w-40 shrink-0"
-                style={{ marginLeft: i > 0 ? -48 : 0 }}
-              >
-                <CreditCardVisual card={SHOWCASE_CARDS[i]} tilt={false} showSave={false} />
-              </motion.div>
-            ))}
+          <div className="py-8">
+            <CardFan cards={SHOWCASE_CARDS} cardWidth={148} />
           </div>
         </FeatureRow>
 

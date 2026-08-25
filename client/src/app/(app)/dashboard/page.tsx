@@ -171,9 +171,9 @@ export default function Dashboard() {
   return (
     <>
       <div className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Main Section */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
               <Card>
                 <CardHeader>
@@ -334,7 +334,7 @@ export default function Dashboard() {
 
             {/* Results */}
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
-              <Card className="border-ember/40 relative overflow-hidden">
+              <Card className="relative overflow-hidden border-white/10 before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gradient-to-r before:from-transparent before:via-ember before:to-transparent">
                 {results && <Confetti trigger={confettiKey} />}
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -513,61 +513,44 @@ export default function Dashboard() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-              <Card className="border-verdigris/40">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-verdigris" />
-                    AI Assistant
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Ask me anything about credit cards, rewards, or your spending!
-                    </p>
-                    <Button variant="outline" className="w-full">
-                      Start Chatting
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="lg:col-span-2 lg:sticky lg:top-24 self-start rounded-2xl border border-white/10 bg-ink-2/50 backdrop-blur-sm divide-y divide-white/[0.06] overflow-hidden"
+          >
+            <div className="p-6">
+              <p className="font-mono text-[11px] tracking-[0.2em] text-verdigris-light uppercase mb-2">Ask about it</p>
+              <h3 className="font-heading text-xl mb-3 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-verdigris" /> AI Assistant
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                Once you have a recommendation, ask why it ranked where it did — rewards math, fees, anything.
+              </p>
+              <Button variant="outline" className="w-full">
+                Start Chatting
+              </Button>
+            </div>
 
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">How It Works</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-ember/20 flex items-center justify-center text-xs font-bold text-ember">1</div>
-                      <div>
-                        <p className="text-sm font-medium">Upload or enter spending</p>
-                        <p className="text-xs text-muted-foreground">PDF/CSV statement, or drag sliders by category</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-ember/20 flex items-center justify-center text-xs font-bold text-ember">2</div>
-                      <div>
-                        <p className="text-sm font-medium">Set preferences</p>
-                        <p className="text-xs text-muted-foreground">Exclude banks, set a fee limit, require lounge access</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-ember/20 flex items-center justify-center text-xs font-bold text-ember">3</div>
-                      <div>
-                        <p className="text-sm font-medium">Swipe your top 5</p>
-                        <p className="text-xs text-muted-foreground">Shortlist favorites, compare, download your match</p>
-                      </div>
+            <div className="p-6">
+              <p className="font-mono text-[11px] tracking-[0.2em] text-verdigris-light uppercase mb-4">How it works</p>
+              <div className="space-y-5">
+                {[
+                  { n: "01", title: "Upload or enter spending", body: "PDF/CSV statement, or drag sliders by category" },
+                  { n: "02", title: "Set preferences", body: "Exclude banks, set a fee limit, require lounge access" },
+                  { n: "03", title: "Swipe your top 5", body: "Shortlist favorites, compare, download your match" },
+                ].map((step) => (
+                  <div key={step.n} className="flex gap-3">
+                    <span className="font-heading text-2xl text-white/15 leading-none shrink-0">{step.n}</span>
+                    <div>
+                      <p className="text-sm font-medium leading-tight">{step.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{step.body}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </>

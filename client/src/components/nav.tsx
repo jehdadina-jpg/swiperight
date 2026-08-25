@@ -9,6 +9,7 @@ import { useSavedCards } from "@/lib/savedCards";
 const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/cards", label: "Card Directory" },
+  { href: "/quiz", label: "Quiz" },
   { href: "/saved", label: "Saved" },
 ];
 
@@ -17,15 +18,12 @@ export function Nav() {
   const savedCount = useSavedCards((s) => Object.keys(s.saved).length);
 
   return (
-    <header className="border-b border-white/10 bg-ink-2 sticky top-0 z-50 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-ink/75 backdrop-blur-lg">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="text-4xl">💳</div>
-            <div>
-              <h1 className="font-heading text-2xl font-bold text-ember">SwipeRight</h1>
-              <p className="text-xs text-muted-foreground">AI-Powered Card Advisor</p>
-            </div>
+          <Link href="/" className="flex items-baseline gap-2">
+            <span className="font-heading italic text-xl">Swipe</span>
+            <span className="font-heading text-xl text-ember">Right</span>
           </Link>
           <nav className="flex items-center gap-1">
             {LINKS.map((link) => (
