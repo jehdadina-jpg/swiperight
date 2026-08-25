@@ -1,27 +1,17 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Search, Plane } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Layers } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Nav } from "@/components/nav";
+import { CreditCardVisual } from "@/components/credit-card-visual";
 import { cardsAPI } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
-
-interface CardItem {
-  id: number;
-  name: string;
-  issuer: string;
-  network: string;
-  annual_fee: number;
-  joining_fee: number;
-  reward_rate: number;
-  tags: string[];
-  highlight: string | null;
-  lounge_access: boolean;
-  churn_risk: string;
-}
+import type { SavedCard } from "@/lib/savedCards";
 
 const SORT_OPTIONS = [
   { value: "reward_rate", label: "Reward Rate" },
@@ -30,7 +20,8 @@ const SORT_OPTIONS = [
 ];
 
 export default function CardsDirectory() {
-  const [cards, setCards] = useState<CardItem[]>([]);
+  const router = useRouter();
+  const [cards, setCards] = useState<SavedCard[]>([]);
   const [issuers, setIssuers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -38,6 +29,7 @@ export default function CardsDirectory() {
   const [loungeOnly, setLoungeOnly] = useState(false);
   const [freeOnly, setFreeOnly] = useState(false);
   const [sortBy, setSortBy] = useState("reward_rate");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     cardsAPI.getIssuers().then(setIssuers).catch(() => setIssuers([]));
@@ -68,15 +60,24 @@ export default function CardsDirectory() {
     return () => clearTimeout(timeout);
   }, [fetchCards]);
 
+  const toggleSelect = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 3) next.add(id);
+      return next;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-navy">
       <Nav />
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 pb-28">
         <div className="mb-8">
           <h2 className="font-heading text-3xl font-bold text-gold mb-2">Card Directory</h2>
           <p className="text-muted-foreground">
-            Browse every card in our system{cards.length > 0 && !loading ? ` — ${cards.length} shown` : ""}
+            Browse every card in our system{cards.length > 0 && !loading ? ` — ${cards.length} shown` : ""}. Tap a card to select it for comparison.
           </p>
         </div>
 
@@ -169,20 +170,26 @@ export default function CardsDirectory() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.03, 0.3) }}
+                className="relative"
               >
-                <Card className="h-full border-gold/20 hover:border-gold/40 transition-all">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-lg leading-tight">{card.name}</CardTitle>
-                      {card.lounge_access && <Plane className="w-4 h-4 text-teal shrink-0 mt-1" />}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{card.issuer} · {card.network}</p>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
+                <button
+                  onClick={() => toggleSelect(card.id)}
+                  className={`absolute -top-2 -left-2 z-10 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${
+                    selected.has(card.id)
+                      ? "bg-gold border-gold text-navy"
+                      : "bg-navy-2 border-white/20 text-transparent hover:border-gold/50"
+                  }`}
+                  aria-label="Select for comparison"
+                >
+                  ✓
+                </button>
+                <CreditCardVisual card={card} className="mb-3" />
+                <Card className="border-gold/10">
+                  <CardContent className="p-4 space-y-3">
                     {card.highlight && (
                       <p className="text-sm text-teal-light">{card.highlight}</p>
                     )}
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/10">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
                         <p className="text-xs text-muted-foreground">Annual Fee</p>
                         <p className="font-semibold text-gold">
@@ -213,6 +220,21 @@ export default function CardsDirectory() {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {selected.size >= 2 && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
+          >
+            <Button size="lg" onClick={() => router.push(`/compare?ids=${Array.from(selected).join(",")}`)} className="shadow-2xl">
+              <Layers className="w-4 h-4 mr-2" /> Compare {selected.size} Cards
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,28 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, Sparkles, MessageSquare, SlidersHorizontal, Plane } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { toPng } from "html-to-image";
+import {
+  Upload, Sparkles, MessageSquare, SlidersHorizontal, Plane,
+  Download, Layers, Heart,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { UploadZone } from "@/components/upload-zone";
 import { Nav } from "@/components/nav";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CreditCardVisual } from "@/components/credit-card-visual";
+import { SwipeDeck } from "@/components/swipe-deck";
+import { Confetti } from "@/components/confetti";
 import { uploadAPI, recommendationAPI, cardsAPI } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
-import { SPENDING_CATEGORIES, CATEGORY_ICONS } from "@/lib/constants";
+import { useCountUp } from "@/lib/useCountUp";
+import { useSavedCards, type SavedCard } from "@/lib/savedCards";
+import { SPENDING_CATEGORIES, CATEGORY_ICONS, CATEGORY_COLORS } from "@/lib/constants";
 
 interface RankedCard {
   rank: number;
-  card: { name: string; issuer: string; reward_rate: number; lounge_access: boolean };
+  card: SavedCard;
   reasoning: string;
   calculation_details: {
     net_annual_benefit: number;
     effective_reward_rate: number;
+    yearly_spend: number;
+    breakeven_spend: number | null;
   };
 }
 
 type Mode = "upload" | "manual";
+
+const SLIDER_MAX = 200000;
+const SLIDER_STEP = 500;
 
 export default function Dashboard() {
   const [mode, setMode] = useState<Mode>("upload");
@@ -30,9 +45,14 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<RankedCard[] | null>(null);
+  const [categoryTotalsUsed, setCategoryTotalsUsed] = useState<Record<string, number>>({});
+  const [deckDone, setDeckDone] = useState(false);
+  const [confettiKey, setConfettiKey] = useState(0);
+  const winnerRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
 
   // Manual category entry
-  const [manualAmounts, setManualAmounts] = useState<Record<string, string>>({});
+  const [manualAmounts, setManualAmounts] = useState<Record<string, number>>({});
 
   // Preferences
   const [showPreferences, setShowPreferences] = useState(false);
@@ -41,9 +61,14 @@ export default function Dashboard() {
   const [maxAnnualFee, setMaxAnnualFee] = useState("");
   const [requireLounge, setRequireLounge] = useState(false);
 
+  const { save } = useSavedCards();
+
   useEffect(() => {
     cardsAPI.getIssuers().then(setIssuers).catch(() => setIssuers([]));
   }, []);
+
+  const winner = results?.[0];
+  const netBenefitDisplay = useCountUp(winner?.calculation_details.net_annual_benefit ?? 0);
 
   const toggleIssuer = (issuer: string) => {
     setExcludedIssuers((prev) => {
@@ -61,6 +86,13 @@ export default function Dashboard() {
     top_n: 5,
   });
 
+  const applyResults = (recResult: { recommendations: RankedCard[]; category_totals_used: Record<string, number> }) => {
+    setResults(recResult.recommendations);
+    setCategoryTotalsUsed(recResult.category_totals_used);
+    setDeckDone(false);
+    setConfettiKey((k) => k + 1);
+  };
+
   const handleUpload = async (file: File) => {
     setError(null);
     setResults(null);
@@ -76,7 +108,7 @@ export default function Dashboard() {
         statement_id: uploaded.id,
         ...buildPreferences(),
       });
-      setResults(recResult.recommendations);
+      applyResults(recResult);
     } catch (err) {
       setAnalyzing(false);
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
@@ -93,8 +125,7 @@ export default function Dashboard() {
 
     const manual_category_totals: Record<string, number> = {};
     for (const [category, value] of Object.entries(manualAmounts)) {
-      const n = Number(value);
-      if (n > 0) manual_category_totals[category] = n;
+      if (value > 0) manual_category_totals[category] = value;
     }
 
     if (Object.keys(manual_category_totals).length === 0) {
@@ -108,7 +139,7 @@ export default function Dashboard() {
         manual_category_totals,
         ...buildPreferences(),
       });
-      setResults(recResult.recommendations);
+      applyResults(recResult);
     } catch (err) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
       setError(typeof detail === "string" ? detail : "Something went wrong generating recommendations.");
@@ -116,6 +147,26 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
+  const downloadWinnerCard = async () => {
+    if (!winnerRef.current || !winner) return;
+    setDownloading(true);
+    try {
+      const dataUrl = await toPng(winnerRef.current, { pixelRatio: 2 });
+      const link = document.createElement("a");
+      link.download = `${winner.card.name.replace(/\s+/g, "-").toLowerCase()}-swiperight.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch {
+      setError("Couldn't generate the image. Try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const chartData = Object.entries(categoryTotalsUsed)
+    .filter(([, v]) => v > 0)
+    .map(([category, value]) => ({ name: category, value }));
 
   return (
     <div className="min-h-screen bg-navy">
@@ -171,27 +222,45 @@ export default function Dashboard() {
                       </div>
                     </>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       <p className="text-sm text-muted-foreground">
-                        Estimate your yearly spend per category to get recommendations without uploading a statement.
+                        Drag each slider to estimate your yearly spend per category.
                       </p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {SPENDING_CATEGORIES.map((category) => (
-                          <div key={category}>
-                            <label className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                              <span>{CATEGORY_ICONS[category]}</span> {category}
-                            </label>
-                            <Input
-                              type="number"
-                              min={0}
-                              placeholder="₹0"
-                              value={manualAmounts[category] ?? ""}
-                              onChange={(e) =>
-                                setManualAmounts((prev) => ({ ...prev, [category]: e.target.value }))
-                              }
-                            />
-                          </div>
-                        ))}
+                      <div className="space-y-4">
+                        {SPENDING_CATEGORIES.map((category) => {
+                          const value = manualAmounts[category] ?? 0;
+                          const pct = Math.min(100, (value / SLIDER_MAX) * 100);
+                          return (
+                            <div key={category}>
+                              <div className="flex items-center justify-between text-xs mb-1.5">
+                                <span className="flex items-center gap-1.5 text-muted-foreground">
+                                  <span>{CATEGORY_ICONS[category]}</span> {category}
+                                </span>
+                                <span className="font-medium text-gold tabular-nums">
+                                  {value > 0 ? formatCurrency(value) : "—"}
+                                </span>
+                              </div>
+                              <div className="relative h-2 rounded-full bg-navy-3 overflow-hidden">
+                                <div
+                                  className="absolute inset-y-0 left-0 rounded-full"
+                                  style={{ width: `${pct}%`, backgroundColor: CATEGORY_COLORS[category] }}
+                                />
+                                <input
+                                  type="range"
+                                  min={0}
+                                  max={SLIDER_MAX}
+                                  step={SLIDER_STEP}
+                                  value={value}
+                                  onChange={(e) =>
+                                    setManualAmounts((prev) => ({ ...prev, [category]: Number(e.target.value) }))
+                                  }
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  aria-label={`${category} yearly spend`}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                       <Button onClick={handleManualSubmit} disabled={loading} className="w-full">
                         {loading ? "Ranking cards..." : "Get Recommendations"}
@@ -239,12 +308,13 @@ export default function Dashboard() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-xs text-muted-foreground mb-1 block">Max annual fee (₹)</label>
-                        <Input
+                        <input
                           type="number"
                           min={0}
                           placeholder="No limit"
                           value={maxAnnualFee}
                           onChange={(e) => setMaxAnnualFee(e.target.value)}
+                          className="flex h-10 w-full rounded-lg border border-border bg-navy-3 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                         />
                       </div>
                       <div className="flex items-end pb-2">
@@ -266,7 +336,8 @@ export default function Dashboard() {
 
             {/* Results */}
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
-              <Card className="border-gold/40">
+              <Card className="border-gold/40 relative overflow-hidden">
+                {results && <Confetti trigger={confettiKey} />}
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-gold" />
@@ -275,56 +346,161 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   {loading ? (
-                    <div className="text-center py-8">
-                      <div className="inline-flex p-4 rounded-full bg-gold/10 mb-4">
-                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-gold border-t-transparent" />
-                      </div>
-                      <p className="text-gold">Ranking cards for your spending...</p>
+                    <div className="space-y-4">
+                      <Skeleton className="h-40 w-full" />
+                      <Skeleton className="h-4 w-2/3" />
+                      <Skeleton className="h-4 w-1/2" />
                     </div>
                   ) : error ? (
                     <div className="text-center py-8 text-destructive text-sm">{error}</div>
-                  ) : results && results.length > 0 ? (
-                    <div className="space-y-4">
-                      {results.map((r) => (
-                        <div
-                          key={r.rank}
-                          className={`p-4 rounded-lg border ${
-                            r.rank === 1 ? "border-gold/50 bg-gold/5" : "border-white/10 bg-navy-3"
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div
-                              className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                r.rank === 1 ? "bg-gold text-navy" : "bg-white/10 text-muted-foreground"
-                              }`}
-                            >
-                              {r.rank}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-heading font-bold text-gold">{r.card.name}</h3>
-                                {r.card.lounge_access && <Plane className="w-3.5 h-3.5 text-teal" />}
+                  ) : results && winner ? (
+                    <div className="space-y-8">
+                      {/* Headline winner */}
+                      <div className="flex flex-col sm:flex-row items-center gap-6">
+                        <div ref={winnerRef} className="w-56 shrink-0 p-3 bg-navy rounded-2xl">
+                          <CreditCardVisual card={winner.card} rank={1} tilt={false} />
+                        </div>
+                        <div className="text-center sm:text-left">
+                          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Your best match</p>
+                          <h3 className="font-heading text-2xl font-bold text-gold">{winner.card.name}</h3>
+                          <p className="text-sm text-muted-foreground mb-3">{winner.card.issuer}</p>
+                          <p className="text-3xl font-bold text-gold-light tabular-nums">
+                            {formatCurrency(netBenefitDisplay)}
+                            <span className="text-sm text-muted-foreground font-normal"> / year net benefit</span>
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-3"
+                            onClick={downloadWinnerCard}
+                            disabled={downloading}
+                          >
+                            <Download className="w-3.5 h-3.5 mr-1.5" />
+                            {downloading ? "Generating..." : "Download this card"}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Spend breakdown donut */}
+                      {chartData.length > 0 && (
+                        <div className="flex items-center gap-4 p-4 rounded-lg bg-navy-3">
+                          <div className="w-28 h-28 shrink-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie data={chartData} dataKey="value" nameKey="name" innerRadius={28} outerRadius={48} paddingAngle={2} isAnimationActive={false}>
+                                  {chartData.map((entry) => (
+                                    <Cell key={entry.name} fill={CATEGORY_COLORS[entry.name as keyof typeof CATEGORY_COLORS] ?? "#666"} />
+                                  ))}
+                                </Pie>
+                                <Tooltip
+                                  formatter={(v: number) => formatCurrency(v)}
+                                  contentStyle={{ background: "#1a2332", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
+                                />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
+                            {chartData.map((d) => (
+                              <div key={d.name} className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[d.name as keyof typeof CATEGORY_COLORS] ?? "#666" }} />
+                                <span className="text-muted-foreground">{d.name}</span>
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">{r.card.issuer}</p>
-                              <p className="text-xs text-muted-foreground mb-3">{r.reasoning}</p>
-                              <div className="flex gap-6">
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Net Annual Benefit</p>
-                                  <p className="font-bold text-gold">
-                                    {formatCurrency(r.calculation_details.net_annual_benefit)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Reward Rate</p>
-                                  <p className="font-bold text-teal">
-                                    {r.calculation_details.effective_reward_rate}%
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
+                            ))}
                           </div>
                         </div>
-                      ))}
+                      )}
+
+                      {/* Swipe deck through the top 5 */}
+                      <div>
+                        <p className="text-sm font-medium mb-4 text-center">Swipe through your top 5 — shortlist the ones you like</p>
+                        <SwipeDeck
+                          items={results}
+                          renderItem={(r) => <CreditCardVisual card={r.card} rank={r.rank} showSave={false} />}
+                          onSwipe={(r, direction) => {
+                            if (direction === "right") save(r.card);
+                          }}
+                          onComplete={() => setDeckDone(true)}
+                        />
+                        {deckDone && (
+                          <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center text-sm text-teal-light mt-4 flex items-center justify-center gap-1.5"
+                          >
+                            <Heart className="w-4 h-4" /> Check your{" "}
+                            <a href="/saved" className="underline">Saved Cards</a> for anything you shortlisted
+                          </motion.p>
+                        )}
+                      </div>
+
+                      {/* Full ranked breakdown */}
+                      <div className="space-y-3">
+                        {results.map((r) => {
+                          const breakeven = r.calculation_details.breakeven_spend;
+                          const spend = r.calculation_details.yearly_spend;
+                          const breakevenPct = breakeven && breakeven > 0 ? Math.min(100, (spend / breakeven) * 100) : null;
+                          return (
+                            <div
+                              key={r.rank}
+                              className={`p-4 rounded-lg border ${
+                                r.rank === 1 ? "border-gold/50 bg-gold/5" : "border-white/10 bg-navy-3"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div
+                                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                    r.rank === 1 ? "bg-gold text-navy" : "bg-white/10 text-muted-foreground"
+                                  }`}
+                                >
+                                  {r.rank}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h3 className="font-heading font-bold text-gold">{r.card.name}</h3>
+                                    {r.card.lounge_access && <Plane className="w-3.5 h-3.5 text-teal" />}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground mb-2">{r.card.issuer}</p>
+                                  <p className="text-xs text-muted-foreground mb-3">{r.reasoning}</p>
+                                  <div className="flex gap-6 mb-3">
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Net Annual Benefit</p>
+                                      <p className="font-bold text-gold">
+                                        {formatCurrency(r.calculation_details.net_annual_benefit)}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Reward Rate</p>
+                                      <p className="font-bold text-teal">
+                                        {r.calculation_details.effective_reward_rate}%
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {breakevenPct !== null && (
+                                    <div>
+                                      <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
+                                        <span>Breakeven progress</span>
+                                        <span>{formatCurrency(spend)} / {formatCurrency(breakeven!)}</span>
+                                      </div>
+                                      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                                        <div
+                                          className={`h-full rounded-full ${breakevenPct >= 100 ? "bg-teal" : "bg-gold"}`}
+                                          style={{ width: `${breakevenPct}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <a href="/saved">
+                        <Button variant="outline" className="w-full">
+                          <Layers className="w-4 h-4 mr-2" /> View Saved &amp; Compare
+                        </Button>
+                      </a>
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
@@ -370,7 +546,7 @@ export default function Dashboard() {
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">1</div>
                       <div>
                         <p className="text-sm font-medium">Upload or enter spending</p>
-                        <p className="text-xs text-muted-foreground">PDF/CSV statement, or manual amounts by category</p>
+                        <p className="text-xs text-muted-foreground">PDF/CSV statement, or drag sliders by category</p>
                       </div>
                     </div>
                     <div className="flex gap-3">
@@ -383,8 +559,8 @@ export default function Dashboard() {
                     <div className="flex gap-3">
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">3</div>
                       <div>
-                        <p className="text-sm font-medium">Get your top 5</p>
-                        <p className="text-xs text-muted-foreground">Ranked best to worst for your spending</p>
+                        <p className="text-sm font-medium">Swipe your top 5</p>
+                        <p className="text-xs text-muted-foreground">Shortlist favorites, compare, download your match</p>
                       </div>
                     </div>
                   </div>
