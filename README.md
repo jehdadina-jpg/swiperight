@@ -1,127 +1,94 @@
-# SwipeRight 💳
-### AI-Powered Credit Card Recommendation Engine
+# SwipeRight
 
-A modern web application that analyzes bank statements (or manually entered spending) and ranks the **top 5** best-fit credit cards from a catalog of Indian credit cards using AI and ML.
+Credit card recommendation tool for the Indian market. Give it a bank statement or a manual spending estimate and it ranks the top 5 cards from its catalog against that spending pattern, with the reasoning behind each rank.
 
-> The production frontend is the Next.js app in `client/`. The original static
-> HTML/JS/CSS prototype has been moved to `legacy/` and is kept for reference
-> only — it is not served or maintained.
+The production frontend is the Next.js app in `client/`. `legacy/` holds the original static HTML/JS/CSS prototype (client-side Gemini calls, no backend) — kept for reference, not served or maintained.
 
-### Quick Start (Windows)
+## Quick start (Windows)
 
 **Backend**
+
 ```powershell
 cd server
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
-# copy .env.example to .env — the default DATABASE_URL uses a local SQLite
-# file, so no database server setup is needed to get started
+copy .env.example .env
 python main.py
 ```
 
+Default config uses a local SQLite file — no database server to install. Tables are created and the card catalog is seeded automatically on first run.
+
 **Frontend** (separate terminal)
+
 ```powershell
 cd client
 npm install
 npm run dev
 ```
 
-Then open `http://localhost:3000`. No account or login is required — upload
-a statement and go. (Registration/login endpoints still exist in the API for
-future use, but nothing on the current frontend requires them.)
+Open `http://localhost:3000`. No account or login — the auth endpoints exist in the API but nothing on the frontend calls them.
 
----
+After the first-time setup above, `RUN.bat` at the repo root starts both servers.
 
-## ✨ Features
+## How it works
 
-- 📊 **Statement Upload** - Drag & drop PDF/CSV bank statements
-- ✍️ **Manual Entry** - Skip the upload entirely and enter estimated yearly spend per category
-- 🤖 **ML Categorization** - Auto-categorize 13 spending categories
-- 🏆 **Top 5 Ranking** - Ranked list of the 5 best-fit cards, not just one
-- 🎛️ **Preferences** - Exclude specific banks, cap the annual fee, or require lounge access
-- 📇 **Card Directory** - Browse, search, and filter every card in the system
-- 🔒 **Privacy First** - Files deleted after processing
-- 💬 **AI Chat** - Ask questions about your recommendation
-- 🎨 **Beautiful UI** - Bloomberg-inspired dark mode dashboard
+1. Upload a statement (PDF/CSV) or enter spending manually — sliders per category, or a 7-question swipe quiz if you'd rather not type numbers
+2. Uploaded statements get parsed and each transaction categorized (13 categories, rule-based with an ML fallback)
+3. Every eligible card in the catalog is scored against the resulting spend profile
+4. Optional preferences narrow the pool first — exclude specific banks, cap the annual fee, require lounge access
+5. Top 5 cards come back ranked, each with its net annual benefit, effective reward rate, and a one-line reason it ranked where it did
 
----
+## Features
 
-## 📋 Prerequisites
+- Statement upload (PDF/CSV) with merchant categorization
+- Manual spend entry via sliders, or a swipeable lifestyle quiz as a third input method
+- Top 5 ranked recommendations, not just one — swipeable deck plus a full written breakdown
+- Preferences: bank exclusion, max annual fee, lounge-access requirement
+- Card directory: search/filter/sort the full catalog
+- Save cards (localStorage) and compare up to 3 side by side
+- Downloadable image of your top match
+- Statement files are deleted from disk immediately after parsing; raw transactions are never sent to the chat endpoint, only category totals
 
-- **Node.js 18+** - [Download](https://nodejs.org/)
-- **Python 3.12+** - [Download](https://www.python.org/downloads/)
-- **PostgreSQL 14+** (optional) - [Download](https://www.postgresql.org/download/)
-
----
-
-## 🗄️ Database Setup
-
-By default (`server/.env.example`), the app uses a local SQLite file
-(`DATABASE_URL=sqlite:///./swiperight.db`) — no setup required. Tables are
-created and the credit card catalog is seeded automatically on first run
-(`server/main.py` startup); `python -m database.seed_cards` also exists if
-you need to run it manually (it's a no-op if cards already exist).
-
-For Postgres instead, set `DATABASE_URL=postgresql://user:pass@localhost:5432/swiperight_db`
-in `server/.env` and create the database first (`createdb swiperight_db`).
-
----
-
-## 📁 Project Structure
+## Project structure
 
 ```
 SwipeRight/
-├── client/                 # Next.js 15 Frontend
-│   ├── src/
-│   │   ├── app/           # App Router pages
-│   │   ├── components/    # React components
-│   │   └── lib/           # API client & utilities
-│   └── package.json
+├── client/                # Next.js 15 frontend
+│   ├── src/app/           # pages (dashboard, cards, saved, compare, quiz, ...)
+│   ├── src/components/    # shared UI + feature components
+│   └── src/lib/           # API client, constants, hooks
 │
-├── server/                # FastAPI Backend
-│   ├── api/v1/           # API endpoints
-│   ├── core/             # Security & config
-│   ├── database/         # Models & migrations
-│   ├── ml/               # ML categorizer & recommender
-│   ├── services/         # Statement parser
-│   └── main.py
+├── server/                # FastAPI backend
+│   ├── api/v1/endpoints/  # route handlers
+│   ├── core/              # config, JWT/security utilities
+│   ├── database/          # models, session, card seed data
+│   ├── ml/                # transaction categorizer, recommendation engine
+│   ├── services/          # statement parser (PDF/CSV)
+│   └── tests/
 │
-├── legacy/                # Old static HTML/JS/CSS prototype (reference only, not served)
-└── README.md
+├── legacy/                 # original static prototype, unmaintained
+└── RUN.bat
 ```
 
----
+## Environment variables
 
-## 🎯 How It Works
-
-1. **Upload or enter spending** - Upload a bank statement (PDF/CSV), or skip straight to manual per-category amounts
-2. **Parse** (upload only) - Extract transactions with merchant normalization
-3. **Categorize** (upload only) - ML model assigns 13 spending categories
-4. **Set preferences** - Optionally exclude banks, cap the annual fee, or require lounge access
-5. **Calculate** - Score every eligible card against the spending pattern
-6. **Recommend** - Return the top 5 cards, ranked, each with its own reasoning
-7. **Chat** - AI answers questions (category totals only, no raw data)
-
----
-
-## 🔑 Environment Variables
-
-Copy `server/.env.example` to `server/.env` and configure:
+Copy `server/.env.example` to `server/.env`:
 
 ```env
 DATABASE_URL=sqlite:///./swiperight.db
 
-# Required in production (ENVIRONMENT=production) — the app fails fast at
-# startup if these are missing when ENVIRONMENT=production. In development
-# they're auto-generated if omitted, but that means tokens/encrypted data
-# won't survive a restart, so set them explicitly even locally if that matters.
-SECRET_KEY=your-secret-key-here
-AES_KEY=your-aes-key-here
+# Required if ENVIRONMENT=production — startup fails without them.
+# In development they're auto-generated when unset, which means tokens/
+# encrypted data won't survive a restart. Set them explicitly if that matters.
+SECRET_KEY=
+AES_KEY=
+
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
 
-GEMINI_API_KEY=your-gemini-key-here
+GEMINI_API_KEY=
 
 ENVIRONMENT=development
 UPLOAD_DIR=./uploads
@@ -130,169 +97,56 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:8000
 RATE_LIMIT_PER_MINUTE=60
 ```
 
-Get a Gemini API key (free): https://aistudio.google.com/app/apikey
+`GEMINI_API_KEY` is only used by `/api/chat`; leave it blank and that endpoint returns a canned response instead of failing. `server/.env` is gitignored.
 
-`server/.env` is gitignored — never commit real secrets.
+## API
 
----
+Base path `/api`. Full interactive docs at `/api/docs` once the server is running.
 
-## 🌐 API Endpoints
+| Endpoint | Notes |
+|---|---|
+| `POST /upload/`, `POST /upload/analyze/{id}` | Upload and parse a statement |
+| `POST /recommendation/` | Rank cards. Takes `statement_id` **or** `manual_category_totals`, plus optional `top_n`, `excluded_issuers`, `max_annual_fee`, `require_lounge_access` |
+| `GET /cards/` | Browse the catalog — `search`, `issuer`, `network`, `tag`, `max_annual_fee`, `lounge_access`, `sort_by`, `sort_dir` |
+| `GET /cards/issuers` | Distinct issuer names, for the bank-exclusion filter |
+| `POST /chat/` | Ask about a saved recommendation (category totals only, no raw transactions) |
+| `POST /auth/register`, `POST /auth/login` | Present, unused by the current frontend |
 
-No authentication is required to use the app. `POST /api/auth/register` and
-`/login` still exist and issue JWTs, but nothing currently requires the token.
+## Card catalog
 
-- `POST /api/auth/register` / `POST /api/auth/login` - Create account / sign in (optional, unused by the frontend)
-- `POST /api/upload/` - Upload statement
-- `POST /api/upload/analyze/{id}` - Analyze statement
-- `GET /api/cards/` - Browse cards (`search`, `issuer`, `network`, `tag`, `max_annual_fee`, `lounge_access`, `sort_by`, `sort_dir`)
-- `GET /api/cards/issuers` - Distinct issuer names, for bank-exclusion filters
-- `POST /api/recommendation/` - Rank the top N cards (`top_n`, default 5) for either a `statement_id` or `manual_category_totals`, with optional `excluded_issuers` / `max_annual_fee` / `require_lounge_access` preferences
-- `POST /api/chat` - Ask AI questions
-- `GET /api/docs` - Interactive API docs
+23 real Indian cards, seeded from `server/database/seed_cards.py` — HDFC, SBI, ICICI, Axis, IDFC FIRST, Amex, Standard Chartered, Kotak, AU Bank. Seeding is idempotent (skips if cards already exist) and runs automatically at startup; `python -m database.seed_cards` also works standalone. Add cards by extending `cards_data` in that file.
 
----
+## Tech stack
 
-## 🎨 Tech Stack
+**Frontend** — Next.js 15, TypeScript, Tailwind, Framer Motion, Recharts, Zustand, Axios
 
-### Frontend
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Type safety
-- **TailwindCSS** - Styling
-- **Axios** - HTTP client
+**Backend** — FastAPI, SQLAlchemy, SQLite/Postgres, scikit-learn, pdfplumber/PyPDF2, slowapi
 
-### Backend
-- **FastAPI** - Modern Python web framework
-- **SQLAlchemy** - ORM
-- **PostgreSQL** - Database
-- **scikit-learn** - ML categorization
-- **pandas** - Data processing
-- **PyPDF2/pdfplumber** - PDF parsing
-- **Google Gemini** - AI chat
-
----
-
-## 🧪 Testing
+## Testing
 
 ```powershell
-# Backend tests
+# Backend
 cd server
 .\venv\Scripts\activate
 python -m pytest
 
-# Frontend tests
+# Frontend
 cd client
-npm test
+npm test          # unit tests (Vitest)
+npm run type-check
+npm run lint
 ```
 
----
+## Deployment notes
 
-## 🚀 Deployment
+There's no Docker setup or CI/CD here — this runs as two local processes. For a real deployment: point `DATABASE_URL` at Postgres, set `ENVIRONMENT=production` (forces `SECRET_KEY`/`AES_KEY` to be set explicitly), `npm run build && npm start` for the frontend, and run the backend behind `uvicorn main:app` with a process manager.
 
-### Using Docker (coming soon)
-```bash
-docker-compose up
-```
+## Known limitations
 
-### Manual Deployment
-1. Set up PostgreSQL database
-2. Update `.env` with production values
-3. Build frontend: `cd client && npm run build`
-4. Run backend: `cd server && uvicorn main:app --host 0.0.0.0 --port 8000`
-5. Serve frontend: `cd client && npm start`
+- No auth by default — any statement, recommendation, or chat is reachable by ID with no ownership check. JWT auth exists in `core/security.py` and is fully wired on the auth endpoints themselves, it's just not required anywhere else. Fine for local/single-user use; re-enable it (`Depends(get_current_user)` on the upload/recommendation/chat routes, plus scoping queries by `user_id`) before exposing this publicly with real data.
+- Only the #1-ranked recommendation is persisted to the database (for `/history` and chat context). Ranks 2–5 are returned in the response but not stored — recomputing them from the same inputs is cheap, so this avoids a schema change for data that's disposable.
+- The PDF parser handles clean tabular exports and common free-text statement formats; anything unusual will fall back to a 422 rather than silently returning wrong numbers.
 
----
+## License
 
-## 📊 Card Database
-
-23 real Indian credit cards are seeded by default (`server/database/seed_cards.py`),
-spanning HDFC, SBI, ICICI, Axis, IDFC FIRST, American Express, Standard
-Chartered, Kotak, and AU Bank — premium travel cards, cashback cards, and
-lifetime-free options. Add more by extending the `cards_data` list in that
-file; the seeder skips cards that already exist.
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-
-1. Fork the repo
-2. Create feature branch: `git checkout -b feature/AmazingFeature`
-3. Commit changes: `git commit -m 'Add AmazingFeature'`
-4. Push to branch: `git push origin feature/AmazingFeature`
-5. Open Pull Request
-
----
-
-## 📄 License
-
-MIT License - see LICENSE file
-
----
-
-## 🐛 Troubleshooting
-
-**Ports already in use?**
-- Close apps using port 3000 or 8000
-
-**Python dependencies fail?**
-- Make sure Python 3.12+ installed
-- Try: `pip install --upgrade pip`
-
-**Node modules fail?**
-- Delete `node_modules` and `package-lock.json`
-- Run `npm install` again
-
-**Database errors?**
-- App works without database (temp data)
-- Or use SQLite instead of PostgreSQL
-
-**Import errors?**
-- Make sure virtual environment is activated
-- Run: `pip install -r requirements.txt`
-
----
-
-## 📞 Support
-
-Questions? Open an issue on GitHub!
-
----
-
-## ⚡ Performance
-
-- Statement parsing: < 2s
-- ML categorization: < 1s for 100 transactions
-- Recommendation: < 500ms
-- Database queries: < 100ms
-
----
-
-## 🔐 Security
-
-- No login is required — all statement/recommendation/chat data is
-  effectively public within a given deployment (anyone with the URL can see
-  any uploaded statement or recommendation by ID). Fine for local/demo use;
-  if you deploy this publicly, re-enable the JWT auth in `core/security.py`
-  (still present, just not wired into the endpoints) before storing real data.
-- `SECRET_KEY`/`AES_KEY` must be set explicitly when `ENVIRONMENT=production`
-  (the app refuses to start otherwise)
-- Rate limiting (slowapi) on auth and upload endpoints
-- Files deleted after processing
-- No raw transaction data sent to AI
-- SQL injection protection via SQLAlchemy
-- Input validation on all endpoints
-
----
-
-## 🎉 Credits
-
-Built with ❤️ for the Indian credit card market
-
-- ML models trained on synthetic data
-- Card data from official bank sources
-- UI inspired by Bloomberg Terminal
-
----
-
-**Ready to try it?** After the first-time setup above, just double-click `RUN.bat`! 🚀
+MIT — see `LICENSE`.
