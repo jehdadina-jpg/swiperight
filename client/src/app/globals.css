@@ -4,25 +4,26 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 14%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 14%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 43 74% 47%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 174 44% 31%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 174 44% 31%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 43 74% 47%;
+    /* Warm near-black + one signal color (ember) - no blue undertone */
+    --background: 24 15% 4%;
+    --foreground: 36 30% 92%;
+    --card: 30 12% 8%;
+    --card-foreground: 36 30% 92%;
+    --popover: 30 12% 8%;
+    --popover-foreground: 36 30% 92%;
+    --primary: 10 100% 56%;
+    --primary-foreground: 24 15% 4%;
+    --secondary: 165 26% 41%;
+    --secondary-foreground: 36 30% 92%;
+    --muted: 30 10% 14%;
+    --muted-foreground: 30 8% 62%;
+    --accent: 165 26% 41%;
+    --accent-foreground: 36 30% 92%;
+    --destructive: 4 75% 48%;
+    --destructive-foreground: 36 30% 92%;
+    --border: 30 12% 16%;
+    --input: 30 12% 16%;
+    --ring: 10 100% 56%;
     --radius: 0.5rem;
   }
 }
@@ -32,7 +33,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-navy text-foreground;
+    @apply bg-ink text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -42,12 +43,12 @@
     @apply bg-white/5 backdrop-blur-lg border border-white/10;
   }
   
-  .gradient-gold {
-    @apply bg-gradient-to-r from-gold-dark via-gold to-gold-light;
+  .gradient-ember {
+    @apply bg-gradient-to-r from-ember-dark via-ember to-ember-light;
   }
   
-  .gradient-teal {
-    @apply bg-gradient-to-r from-teal-dark via-teal to-teal-light;
+  .gradient-verdigris {
+    @apply bg-gradient-to-r from-verdigris-dark via-verdigris to-verdigris-light;
   }
   
   .text-gradient {
@@ -89,14 +90,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a2332;
+  background: #141210;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #303b4a;
+  background: #2a241d;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3d4a5c;
+  background: #3a332a;
 }

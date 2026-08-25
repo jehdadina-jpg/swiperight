@@ -8,15 +8,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gold text-navy hover:bg-gold-light shadow-lg",
+        default: "bg-ember text-ink hover:bg-ember-light shadow-lg",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-gold text-gold hover:bg-gold/10",
+          "border border-ember text-ember hover:bg-ember/10",
         secondary:
-          "bg-teal text-foreground hover:bg-teal-light",
+          "bg-verdigris text-foreground hover:bg-verdigris-light",
         ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-gold underline-offset-4 hover:underline",
+        link: "text-ember underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",

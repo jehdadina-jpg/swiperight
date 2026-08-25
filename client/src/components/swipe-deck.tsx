@@ -40,7 +40,7 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, onComplete, leftLabel
     setTimeout(() => {
       setExitDirection(null);
       setIndex((i) => i + 1);
-    }, 200);
+    }, 220);
   };
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
@@ -66,14 +66,18 @@ export function SwipeDeck<T>({ items, renderItem, onSwipe, onComplete, leftLabel
                 key={absoluteIndex}
                 className="absolute inset-0"
                 style={{ zIndex: visible.length - i }}
-                initial={{ scale: 1 - i * 0.05, y: i * 10, opacity: i === 2 ? 0 : 1 }}
-                animate={{ scale: 1 - i * 0.05, y: i * 10, opacity: i === 2 ? 0.5 : 1 }}
+                initial={{ scale: 1 - i * 0.05, y: i * 10 + 40, x: 70, rotate: 10, opacity: 0 }}
+                animate={{ scale: 1 - i * 0.05, y: i * 10, x: 0, rotate: 0, opacity: i === 2 ? 0.5 : 1 }}
                 exit={
                   isTop && exitDirection
                     ? { x: exitDirection === "right" ? 500 : -500, opacity: 0, rotate: exitDirection === "right" ? 20 : -20 }
                     : { opacity: 0 }
                 }
-                transition={{ duration: 0.2 }}
+                transition={
+                  isTop && exitDirection
+                    ? { duration: 0.22, ease: "easeOut" }
+                    : { duration: 0.4, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }
+                }
                 drag={isTop ? "x" : false}
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.7}

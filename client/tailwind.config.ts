@@ -43,21 +43,32 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        navy: {
-          DEFAULT: "#0F1729",
-          2: "#1a2332",
-          3: "#252f3e",
-          4: "#303b4a",
+        // Warm near-black scale - no blue undertone, closer to forged
+        // metal / dark leather than "navy dashboard"
+        ink: {
+          DEFAULT: "#0A0908",
+          2: "#141210",
+          3: "#1E1A16",
+          4: "#2A241D",
         },
-        gold: {
-          DEFAULT: "#D4A017",
-          light: "#f4d03f",
-          dark: "#b8860b",
+        // The one signal color - ember/vermillion. Used sparingly:
+        // primary actions, the swipe-right state, the #1 ranked card.
+        ember: {
+          DEFAULT: "#FF4620",
+          light: "#FF8259",
+          dark: "#C22F10",
         },
-        teal: {
-          DEFAULT: "#2F6F62",
-          light: "#4a9d8f",
-          dark: "#1e4d42",
+        // Secondary, cool - aged copper/verdigris patina. Not a second
+        // brand color, a material complement to the ember/metal story.
+        verdigris: {
+          DEFAULT: "#4E8577",
+          light: "#7CAC9E",
+          dark: "#335E53",
+        },
+        foil: {
+          DEFAULT: "#C9C2B4",
+          light: "#EDE7DA",
+          dark: "#8C8676",
         },
       },
       borderRadius: {
@@ -66,9 +77,9 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ['var(--font-inter)'],
-        heading: ['var(--font-space-grotesk)'],
-        mono: ['var(--font-jetbrains-mono)'],
+        sans: ['var(--font-body)'],
+        heading: ['var(--font-display)'],
+        mono: ['var(--font-mono)'],
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

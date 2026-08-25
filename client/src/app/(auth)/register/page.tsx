@@ -35,11 +35,11 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-navy flex items-center justify-center px-6">
+    <div className="min-h-screen bg-ink flex items-center justify-center px-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-5xl mb-2">💳</div>
-          <h1 className="font-heading text-3xl font-bold text-gold">SwipeRight</h1>
+          <h1 className="font-heading text-3xl font-bold text-ember">SwipeRight</h1>
         </div>
         <Card>
           <CardHeader>
@@ -95,7 +95,7 @@ export default function RegisterPage() {
             </form>
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/login" className="text-gold hover:underline">
+              <Link href="/login" className="text-ember hover:underline">
                 Sign In
               </Link>
             </p>

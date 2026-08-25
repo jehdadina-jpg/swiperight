@@ -9,11 +9,12 @@ import { useEffect, useRef, useState } from "react";
  * hook drives could get stuck at 0 forever instead of just skipping the
  * animation.
  */
-export function useCountUp(value: number, durationMs = 900): number {
+export function useCountUp(value: number, durationMs = 900, active = true): number {
   const [display, setDisplay] = useState(0);
   const settledRef = useRef(false);
 
   useEffect(() => {
+    if (!active) return;
     settledRef.current = false;
     let frame: number;
     const start = performance.now();
@@ -40,7 +41,7 @@ export function useCountUp(value: number, durationMs = 900): number {
       cancelAnimationFrame(frame);
       clearTimeout(fallback);
     };
-  }, [value, durationMs]);
+  }, [value, durationMs, active]);
 
   return display;
 }

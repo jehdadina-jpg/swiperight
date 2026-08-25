@@ -18,11 +18,11 @@ const ISSUER_GRADIENTS: Record<string, string> = {
   "Kotak Mahindra Bank": "from-[#1f0f3d] via-[#4a1f7a] to-[#7a3dc7]",
   "AU Small Finance Bank": "from-[#0f3d1f] via-[#1f7a3d] to-[#3dc76f]",
 };
-const DEFAULT_GRADIENT = "from-navy-4 via-navy-3 to-navy-2";
+const DEFAULT_GRADIENT = "from-ink-4 via-ink-3 to-ink-2";
 
 const CHURN_STYLES: Record<string, string> = {
-  low: "bg-teal/20 text-teal-light border-teal/30",
-  medium: "bg-gold/20 text-gold-light border-gold/30",
+  low: "bg-verdigris/20 text-verdigris-light border-verdigris/30",
+  medium: "bg-ember/20 text-ember-light border-ember/30",
   high: "bg-destructive/20 text-red-300 border-destructive/40",
 };
 
@@ -38,24 +38,31 @@ interface CreditCardVisualProps {
 export function CreditCardVisual({ card, className, tilt = true, showSave = true, rank, footer }: CreditCardVisualProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [rotate, setRotate] = useState({ x: 0, y: 0 });
+  const [pointer, setPointer] = useState({ x: 0.5, y: 0.3 });
+  const [hovering, setHovering] = useState(false);
   const { isSaved, toggle } = useSavedCards();
   const saved = isSaved(card.id);
   const gradient = ISSUER_GRADIENTS[card.issuer] ?? DEFAULT_GRADIENT;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!tilt || !ref.current) return;
+    if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width - 0.5;
     const py = (e.clientY - rect.top) / rect.height - 0.5;
-    setRotate({ x: py * -10, y: px * 12 });
+    if (tilt) setRotate({ x: py * -10, y: px * 12 });
+    setPointer({ x: px + 0.5, y: py + 0.5 });
   };
 
-  const handleMouseLeave = () => setRotate({ x: 0, y: 0 });
+  const handleMouseLeave = () => {
+    setRotate({ x: 0, y: 0 });
+    setHovering(false);
+  };
 
   return (
     <motion.div
       ref={ref}
       onMouseMove={handleMouseMove}
+      onMouseEnter={() => setHovering(true)}
       onMouseLeave={handleMouseLeave}
       animate={{ rotateX: rotate.x, rotateY: rotate.y }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
@@ -69,8 +76,24 @@ export function CreditCardVisual({ card, className, tilt = true, showSave = true
           gradient
         )}
       >
-        {/* Sheen */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-white/5" />
+        {/* Foil/holographic sheen - a soft light source that follows the cursor */}
+        <div
+          className="pointer-events-none absolute inset-0 mix-blend-overlay transition-opacity duration-300"
+          style={{
+            opacity: hovering ? 0.9 : 0.45,
+            background: `radial-gradient(circle at ${pointer.x * 100}% ${pointer.y * 100}%, rgba(255,255,255,0.55), transparent 55%)`,
+          }}
+        />
+        {/* Holographic strip - hue-shifting diagonal band, catches "light" as pointer moves */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.15] mix-blend-color-dodge transition-transform duration-200 ease-out"
+          style={{
+            background:
+              "linear-gradient(115deg, transparent 20%, #ff6ec7 32%, #7dd3fc 40%, #a78bfa 48%, #fca5a5 56%, transparent 68%)",
+            backgroundSize: "250% 250%",
+            transform: `translate(${(pointer.x - 0.5) * 30}%, ${(pointer.y - 0.5) * 30}%)`,
+          }}
+        />
         <div className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
 
         {rank && (
@@ -85,12 +108,15 @@ export function CreditCardVisual({ card, className, tilt = true, showSave = true
             className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/25 backdrop-blur flex items-center justify-center transition-colors hover:bg-black/40"
             aria-label={saved ? "Remove from saved" : "Save card"}
           >
-            <Heart className={cn("w-4 h-4 transition-all", saved ? "fill-red-400 text-red-400" : "text-white/80")} />
+            <Heart className={cn("w-4 h-4 transition-all", saved ? "fill-ember text-ember" : "text-white/80")} />
           </button>
         )}
 
-        {/* Chip */}
-        <div className="mt-8 w-9 h-7 rounded-md bg-gradient-to-br from-gold-light to-gold-dark opacity-90 relative">
+        {/* Chip - embossed */}
+        <div
+          className="mt-8 w-9 h-7 rounded-md bg-gradient-to-br from-foil-light to-foil-dark relative"
+          style={{ boxShadow: "inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -1px 1px rgba(0,0,0,0.4)" }}
+        >
           <div className="absolute inset-1 rounded-sm border border-black/20" />
         </div>
 
@@ -100,10 +126,15 @@ export function CreditCardVisual({ card, className, tilt = true, showSave = true
         </div>
 
         <div className="absolute bottom-5 left-5 right-5">
-          <p className="font-heading font-bold text-lg leading-tight truncate drop-shadow">{card.name}</p>
+          <p
+            className="font-heading font-semibold text-lg leading-tight truncate"
+            style={{ textShadow: "0 1px 0 rgba(255,255,255,0.15), 0 -1px 1px rgba(0,0,0,0.4)" }}
+          >
+            {card.name}
+          </p>
           <div className="flex items-center justify-between mt-1">
             <p className="text-xs text-white/70 truncate">{card.issuer}</p>
-            <p className="text-xs uppercase tracking-wider text-white/70">{card.network}</p>
+            <p className="text-xs uppercase tracking-wider text-white/70 font-mono">{card.network}</p>
           </div>
         </div>
 

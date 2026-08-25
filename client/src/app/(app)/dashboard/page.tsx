@@ -11,10 +11,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UploadZone } from "@/components/upload-zone";
-import { Nav } from "@/components/nav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreditCardVisual } from "@/components/credit-card-visual";
 import { SwipeDeck } from "@/components/swipe-deck";
+import { SwipeCursor } from "@/components/swipe-cursor";
 import { Confetti } from "@/components/confetti";
 import { uploadAPI, recommendationAPI, cardsAPI } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
@@ -169,9 +169,7 @@ export default function Dashboard() {
     .map(([category, value]) => ({ name: category, value }));
 
   return (
-    <div className="min-h-screen bg-navy">
-      <Nav />
-
+    <>
       <div className="container mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Section */}
@@ -201,14 +199,14 @@ export default function Dashboard() {
                     <>
                       <UploadZone onUpload={handleUpload} />
                       {analyzing && (
-                        <div className="mt-4 p-4 rounded-lg bg-gold/10 border border-gold/20">
+                        <div className="mt-4 p-4 rounded-lg bg-ember/10 border border-ember/20">
                           <div className="flex items-center gap-3">
-                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-gold border-t-transparent" />
-                            <span className="text-sm text-gold">Analyzing your statement...</span>
+                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-ember border-t-transparent" />
+                            <span className="text-sm text-ember">Analyzing your statement...</span>
                           </div>
                         </div>
                       )}
-                      <div className="mt-6 p-4 rounded-lg bg-teal/10 border border-teal/20">
+                      <div className="mt-6 p-4 rounded-lg bg-verdigris/10 border border-verdigris/20">
                         <div className="flex gap-3">
                           <div className="text-2xl">🔒</div>
                           <div>
@@ -236,11 +234,11 @@ export default function Dashboard() {
                                 <span className="flex items-center gap-1.5 text-muted-foreground">
                                   <span>{CATEGORY_ICONS[category]}</span> {category}
                                 </span>
-                                <span className="font-medium text-gold tabular-nums">
+                                <span className="font-medium text-ember tabular-nums">
                                   {value > 0 ? formatCurrency(value) : "—"}
                                 </span>
                               </div>
-                              <div className="relative h-2 rounded-full bg-navy-3 overflow-hidden">
+                              <div className="relative h-2 rounded-full bg-ink-3 overflow-hidden">
                                 <div
                                   className="absolute inset-y-0 left-0 rounded-full"
                                   style={{ width: `${pct}%`, backgroundColor: CATEGORY_COLORS[category] }}
@@ -277,9 +275,9 @@ export default function Dashboard() {
                 <CardHeader className="cursor-pointer" onClick={() => setShowPreferences((v) => !v)}>
                   <CardTitle className="flex items-center justify-between text-base">
                     <span className="flex items-center gap-2">
-                      <SlidersHorizontal className="w-4 h-4 text-gold" /> Preferences
+                      <SlidersHorizontal className="w-4 h-4 text-ember" /> Preferences
                       {(excludedIssuers.size > 0 || maxAnnualFee || requireLounge) && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold">Active</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-ember/10 text-ember">Active</span>
                       )}
                     </span>
                     <span className="text-xs text-muted-foreground">{showPreferences ? "Hide" : "Customize"}</span>
@@ -297,7 +295,7 @@ export default function Dashboard() {
                             className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                               excludedIssuers.has(issuer)
                                 ? "border-destructive text-destructive bg-destructive/10 line-through"
-                                : "border-white/15 text-muted-foreground hover:border-gold/40"
+                                : "border-white/15 text-muted-foreground hover:border-ember/40"
                             }`}
                           >
                             {issuer}
@@ -314,14 +312,14 @@ export default function Dashboard() {
                           placeholder="No limit"
                           value={maxAnnualFee}
                           onChange={(e) => setMaxAnnualFee(e.target.value)}
-                          className="flex h-10 w-full rounded-lg border border-border bg-navy-3 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                          className="flex h-10 w-full rounded-lg border border-border bg-ink-3 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember"
                         />
                       </div>
                       <div className="flex items-end pb-2">
                         <label className="flex items-center gap-2 text-sm cursor-pointer">
                           <input
                             type="checkbox"
-                            className="accent-gold"
+                            className="accent-ember"
                             checked={requireLounge}
                             onChange={(e) => setRequireLounge(e.target.checked)}
                           />
@@ -336,11 +334,11 @@ export default function Dashboard() {
 
             {/* Results */}
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
-              <Card className="border-gold/40 relative overflow-hidden">
+              <Card className="border-ember/40 relative overflow-hidden">
                 {results && <Confetti trigger={confettiKey} />}
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-gold" />
+                    <Sparkles className="w-5 h-5 text-ember" />
                     Top 5 Cards For You
                   </CardTitle>
                 </CardHeader>
@@ -357,14 +355,14 @@ export default function Dashboard() {
                     <div className="space-y-8">
                       {/* Headline winner */}
                       <div className="flex flex-col sm:flex-row items-center gap-6">
-                        <div ref={winnerRef} className="w-56 shrink-0 p-3 bg-navy rounded-2xl">
+                        <div ref={winnerRef} className="w-56 shrink-0 p-3 bg-ink rounded-2xl">
                           <CreditCardVisual card={winner.card} rank={1} tilt={false} />
                         </div>
                         <div className="text-center sm:text-left">
                           <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Your best match</p>
-                          <h3 className="font-heading text-2xl font-bold text-gold">{winner.card.name}</h3>
+                          <h3 className="font-heading text-2xl font-bold text-ember">{winner.card.name}</h3>
                           <p className="text-sm text-muted-foreground mb-3">{winner.card.issuer}</p>
-                          <p className="text-3xl font-bold text-gold-light tabular-nums">
+                          <p className="text-3xl font-bold text-ember-light tabular-nums">
                             {formatCurrency(netBenefitDisplay)}
                             <span className="text-sm text-muted-foreground font-normal"> / year net benefit</span>
                           </p>
@@ -383,7 +381,7 @@ export default function Dashboard() {
 
                       {/* Spend breakdown donut */}
                       {chartData.length > 0 && (
-                        <div className="flex items-center gap-4 p-4 rounded-lg bg-navy-3">
+                        <div className="flex items-center gap-4 p-4 rounded-lg bg-ink-3">
                           <div className="w-28 h-28 shrink-0">
                             <ResponsiveContainer width="100%" height="100%">
                               <PieChart>
@@ -394,7 +392,7 @@ export default function Dashboard() {
                                 </Pie>
                                 <Tooltip
                                   formatter={(v: number) => formatCurrency(v)}
-                                  contentStyle={{ background: "#1a2332", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
+                                  contentStyle={{ background: "#141210", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
                                 />
                               </PieChart>
                             </ResponsiveContainer>
@@ -413,19 +411,21 @@ export default function Dashboard() {
                       {/* Swipe deck through the top 5 */}
                       <div>
                         <p className="text-sm font-medium mb-4 text-center">Swipe through your top 5 — shortlist the ones you like</p>
-                        <SwipeDeck
-                          items={results}
-                          renderItem={(r) => <CreditCardVisual card={r.card} rank={r.rank} showSave={false} />}
-                          onSwipe={(r, direction) => {
-                            if (direction === "right") save(r.card);
-                          }}
-                          onComplete={() => setDeckDone(true)}
-                        />
+                        <SwipeCursor>
+                          <SwipeDeck
+                            items={results}
+                            renderItem={(r) => <CreditCardVisual card={r.card} rank={r.rank} showSave={false} />}
+                            onSwipe={(r, direction) => {
+                              if (direction === "right") save(r.card);
+                            }}
+                            onComplete={() => setDeckDone(true)}
+                          />
+                        </SwipeCursor>
                         {deckDone && (
                           <motion.p
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="text-center text-sm text-teal-light mt-4 flex items-center justify-center gap-1.5"
+                            className="text-center text-sm text-verdigris-light mt-4 flex items-center justify-center gap-1.5"
                           >
                             <Heart className="w-4 h-4" /> Check your{" "}
                             <a href="/saved" className="underline">Saved Cards</a> for anything you shortlisted
@@ -443,34 +443,34 @@ export default function Dashboard() {
                             <div
                               key={r.rank}
                               className={`p-4 rounded-lg border ${
-                                r.rank === 1 ? "border-gold/50 bg-gold/5" : "border-white/10 bg-navy-3"
+                                r.rank === 1 ? "border-ember/50 bg-ember/5" : "border-white/10 bg-ink-3"
                               }`}
                             >
                               <div className="flex items-start gap-3">
                                 <div
                                   className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                    r.rank === 1 ? "bg-gold text-navy" : "bg-white/10 text-muted-foreground"
+                                    r.rank === 1 ? "bg-ember text-ink" : "bg-white/10 text-muted-foreground"
                                   }`}
                                 >
                                   {r.rank}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <h3 className="font-heading font-bold text-gold">{r.card.name}</h3>
-                                    {r.card.lounge_access && <Plane className="w-3.5 h-3.5 text-teal" />}
+                                    <h3 className="font-heading font-bold text-ember">{r.card.name}</h3>
+                                    {r.card.lounge_access && <Plane className="w-3.5 h-3.5 text-verdigris" />}
                                   </div>
                                   <p className="text-sm text-muted-foreground mb-2">{r.card.issuer}</p>
                                   <p className="text-xs text-muted-foreground mb-3">{r.reasoning}</p>
                                   <div className="flex gap-6 mb-3">
                                     <div>
                                       <p className="text-xs text-muted-foreground">Net Annual Benefit</p>
-                                      <p className="font-bold text-gold">
+                                      <p className="font-bold text-ember">
                                         {formatCurrency(r.calculation_details.net_annual_benefit)}
                                       </p>
                                     </div>
                                     <div>
                                       <p className="text-xs text-muted-foreground">Reward Rate</p>
-                                      <p className="font-bold text-teal">
+                                      <p className="font-bold text-verdigris">
                                         {r.calculation_details.effective_reward_rate}%
                                       </p>
                                     </div>
@@ -483,7 +483,7 @@ export default function Dashboard() {
                                       </div>
                                       <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                                         <div
-                                          className={`h-full rounded-full ${breakevenPct >= 100 ? "bg-teal" : "bg-gold"}`}
+                                          className={`h-full rounded-full ${breakevenPct >= 100 ? "bg-verdigris" : "bg-ember"}`}
                                           style={{ width: `${breakevenPct}%` }}
                                         />
                                       </div>
@@ -515,10 +515,10 @@ export default function Dashboard() {
           {/* Sidebar */}
           <div className="space-y-6">
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-              <Card className="border-teal/40">
+              <Card className="border-verdigris/40">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-teal" />
+                    <MessageSquare className="w-5 h-5 text-verdigris" />
                     AI Assistant
                   </CardTitle>
                 </CardHeader>
@@ -543,21 +543,21 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">1</div>
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-ember/20 flex items-center justify-center text-xs font-bold text-ember">1</div>
                       <div>
                         <p className="text-sm font-medium">Upload or enter spending</p>
                         <p className="text-xs text-muted-foreground">PDF/CSV statement, or drag sliders by category</p>
                       </div>
                     </div>
                     <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">2</div>
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-ember/20 flex items-center justify-center text-xs font-bold text-ember">2</div>
                       <div>
                         <p className="text-sm font-medium">Set preferences</p>
                         <p className="text-xs text-muted-foreground">Exclude banks, set a fee limit, require lounge access</p>
                       </div>
                     </div>
                     <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-xs font-bold text-gold">3</div>
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-ember/20 flex items-center justify-center text-xs font-bold text-ember">3</div>
                       <div>
                         <p className="text-sm font-medium">Swipe your top 5</p>
                         <p className="text-xs text-muted-foreground">Shortlist favorites, compare, download your match</p>
@@ -570,6 +570,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

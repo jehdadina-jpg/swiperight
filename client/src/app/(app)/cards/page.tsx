@@ -7,7 +7,6 @@ import { Search, Layers } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Nav } from "@/components/nav";
 import { CreditCardVisual } from "@/components/credit-card-visual";
 import { cardsAPI } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
@@ -70,12 +69,10 @@ export default function CardsDirectory() {
   };
 
   return (
-    <div className="min-h-screen bg-navy">
-      <Nav />
-
+    <>
       <div className="container mx-auto px-6 py-8 pb-28">
         <div className="mb-8">
-          <h2 className="font-heading text-3xl font-bold text-gold mb-2">Card Directory</h2>
+          <h2 className="font-heading text-3xl font-bold text-ember mb-2">Card Directory</h2>
           <p className="text-muted-foreground">
             Browse every card in our system{cards.length > 0 && !loading ? ` — ${cards.length} shown` : ""}. Tap a card to select it for comparison.
           </p>
@@ -95,7 +92,7 @@ export default function CardsDirectory() {
               </div>
 
               <select
-                className="h-10 rounded-lg border border-border bg-navy-3 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="h-10 rounded-lg border border-border bg-ink-3 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember"
                 value={issuer}
                 onChange={(e) => setIssuer(e.target.value)}
               >
@@ -106,7 +103,7 @@ export default function CardsDirectory() {
               </select>
 
               <select
-                className="h-10 rounded-lg border border-border bg-navy-3 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="h-10 rounded-lg border border-border bg-ink-3 px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
@@ -120,7 +117,7 @@ export default function CardsDirectory() {
               <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
                 <input
                   type="checkbox"
-                  className="accent-gold"
+                  className="accent-ember"
                   checked={loungeOnly}
                   onChange={(e) => setLoungeOnly(e.target.checked)}
                 />
@@ -129,7 +126,7 @@ export default function CardsDirectory() {
               <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
                 <input
                   type="checkbox"
-                  className="accent-gold"
+                  className="accent-ember"
                   checked={freeOnly}
                   onChange={(e) => setFreeOnly(e.target.checked)}
                 />
@@ -137,7 +134,7 @@ export default function CardsDirectory() {
               </label>
               {(search || issuer || loungeOnly || freeOnly) && (
                 <button
-                  className="text-sm text-gold hover:underline"
+                  className="text-sm text-ember hover:underline"
                   onClick={() => {
                     setSearch("");
                     setIssuer("");
@@ -154,8 +151,8 @@ export default function CardsDirectory() {
 
         {loading ? (
           <div className="text-center py-16">
-            <div className="inline-flex p-4 rounded-full bg-gold/10 mb-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-gold border-t-transparent" />
+            <div className="inline-flex p-4 rounded-full bg-ember/10 mb-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-ember border-t-transparent" />
             </div>
           </div>
         ) : cards.length === 0 ? (
@@ -176,29 +173,29 @@ export default function CardsDirectory() {
                   onClick={() => toggleSelect(card.id)}
                   className={`absolute -top-2 -left-2 z-10 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${
                     selected.has(card.id)
-                      ? "bg-gold border-gold text-navy"
-                      : "bg-navy-2 border-white/20 text-transparent hover:border-gold/50"
+                      ? "bg-ember border-ember text-ink"
+                      : "bg-ink-2 border-white/20 text-transparent hover:border-ember/50"
                   }`}
                   aria-label="Select for comparison"
                 >
                   ✓
                 </button>
                 <CreditCardVisual card={card} className="mb-3" />
-                <Card className="border-gold/10">
+                <Card className="border-ember/10">
                   <CardContent className="p-4 space-y-3">
                     {card.highlight && (
-                      <p className="text-sm text-teal-light">{card.highlight}</p>
+                      <p className="text-sm text-verdigris-light">{card.highlight}</p>
                     )}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <p className="text-xs text-muted-foreground">Annual Fee</p>
-                        <p className="font-semibold text-gold">
+                        <p className="font-semibold text-ember">
                           {card.annual_fee === 0 ? "Free" : formatCurrency(card.annual_fee)}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Reward Rate</p>
-                        <p className="font-semibold text-teal">{card.reward_rate}%</p>
+                        <p className="font-semibold text-verdigris">{card.reward_rate}%</p>
                       </div>
                     </div>
                     {card.tags && card.tags.length > 0 && (
@@ -235,6 +232,6 @@ export default function CardsDirectory() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

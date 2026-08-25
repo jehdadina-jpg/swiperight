@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Layers, HeartOff } from "lucide-react";
-import { Nav } from "@/components/nav";
 import { CreditCardVisual } from "@/components/credit-card-visual";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,12 +29,11 @@ export default function SavedCardsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-navy">
-      <Nav />
+    <>
       <div className="container mx-auto px-6 py-8 pb-28">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="font-heading text-3xl font-bold text-gold mb-2">Saved Cards</h2>
+            <h2 className="font-heading text-3xl font-bold text-ember mb-2">Saved Cards</h2>
             <p className="text-muted-foreground">
               {cards.length === 0 ? "Nothing saved yet." : `${cards.length} card${cards.length === 1 ? "" : "s"} — select up to 3 to compare`}
             </p>
@@ -47,7 +45,7 @@ export default function SavedCardsPage() {
             <CardContent className="p-12 text-center text-muted-foreground">
               <HeartOff className="w-8 h-8 mx-auto mb-3 opacity-40" />
               Tap the heart on any card in the{" "}
-              <a href="/cards" className="text-gold hover:underline">Card Directory</a> or your recommendations to save it here.
+              <a href="/cards" className="text-ember hover:underline">Card Directory</a> or your recommendations to save it here.
             </CardContent>
           </Card>
         ) : (
@@ -66,8 +64,8 @@ export default function SavedCardsPage() {
                     onClick={() => toggleSelect(card.id)}
                     className={`absolute -top-2 -left-2 z-10 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${
                       selected.has(card.id)
-                        ? "bg-gold border-gold text-navy"
-                        : "bg-navy-2 border-white/20 text-transparent hover:border-gold/50"
+                        ? "bg-ember border-ember text-ink"
+                        : "bg-ink-2 border-white/20 text-transparent hover:border-ember/50"
                     }`}
                     aria-label="Select for comparison"
                   >
@@ -104,6 +102,6 @@ export default function SavedCardsPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

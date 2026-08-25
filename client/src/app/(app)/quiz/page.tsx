@@ -4,10 +4,10 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { RotateCcw } from "lucide-react";
-import { Nav } from "@/components/nav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SwipeDeck, type SwipeDirection } from "@/components/swipe-deck";
+import { SwipeCursor } from "@/components/swipe-cursor";
 import { CreditCardVisual } from "@/components/credit-card-visual";
 import { Confetti } from "@/components/confetti";
 import { recommendationAPI } from "@/lib/api";
@@ -85,13 +85,12 @@ export default function QuizPage() {
   };
 
   return (
-    <div className="min-h-screen bg-navy">
-      <Nav />
+    <>
       <div className="container mx-auto px-6 py-8 max-w-2xl">
         {!started ? (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
             <div className="text-6xl mb-4">👉</div>
-            <h2 className="font-heading text-3xl font-bold text-gold mb-3">The Swipe Quiz</h2>
+            <h2 className="font-heading text-3xl font-bold text-ember mb-3">The Swipe Quiz</h2>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
               7 quick lifestyle questions. Swipe right if it sounds like you, left if it doesn&apos;t.
               We&apos;ll turn your answers into a spending profile and rank your top 5 cards.
@@ -100,10 +99,10 @@ export default function QuizPage() {
           </motion.div>
         ) : loading ? (
           <div className="text-center py-24">
-            <div className="inline-flex p-4 rounded-full bg-gold/10 mb-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-gold border-t-transparent" />
+            <div className="inline-flex p-4 rounded-full bg-ember/10 mb-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-ember border-t-transparent" />
             </div>
-            <p className="text-gold">Matching you to cards...</p>
+            <p className="text-ember">Matching you to cards...</p>
           </div>
         ) : error ? (
           <div className="text-center py-24">
@@ -115,12 +114,12 @@ export default function QuizPage() {
             <Confetti trigger="quiz-done" />
             <div className="text-center mb-8">
               <p className="text-sm text-muted-foreground mb-1">Your perfect match is</p>
-              <h2 className="font-heading text-3xl font-bold text-gold">{winner.card.name}</h2>
+              <h2 className="font-heading text-3xl font-bold text-ember">{winner.card.name}</h2>
             </div>
             <div className="max-w-xs mx-auto mb-6">
               <CreditCardVisual card={winner.card} rank={1} />
             </div>
-            <p className="text-center text-2xl font-bold text-gold-light tabular-nums mb-8">
+            <p className="text-center text-2xl font-bold text-ember-light tabular-nums mb-8">
               {formatCurrency(netBenefitDisplay)}
               <span className="text-sm text-muted-foreground font-normal"> / year net benefit</span>
             </p>
@@ -136,7 +135,7 @@ export default function QuizPage() {
                       <p className="font-medium truncate">{r.card.name}</p>
                       <p className="text-xs text-muted-foreground">{r.card.issuer}</p>
                     </div>
-                    <p className="text-sm font-bold text-gold shrink-0">
+                    <p className="text-sm font-bold text-ember shrink-0">
                       {formatCurrency(r.calculation_details.net_annual_benefit)}
                     </p>
                   </CardContent>
@@ -155,30 +154,32 @@ export default function QuizPage() {
           </div>
         ) : (
           <div className="py-8">
-            <SwipeDeck
-              items={QUESTIONS}
-              leftLabel="Not me"
-              rightLabel="That's me"
-              renderItem={(q) => (
-                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-navy-3 to-navy-4 border border-white/10 shadow-2xl flex flex-col items-center justify-center text-center p-8 gap-6">
-                  <div className="text-5xl">{q.emoji}</div>
-                  <div>
-                    <p className="text-lg font-semibold text-gold-light mb-1">{q.rightStatement}</p>
-                    <p className="text-xs text-muted-foreground">— swipe right —</p>
+            <SwipeCursor>
+              <SwipeDeck
+                items={QUESTIONS}
+                leftLabel="Not me"
+                rightLabel="That's me"
+                renderItem={(q) => (
+                  <div className="w-full h-full rounded-2xl bg-gradient-to-br from-ink-3 to-ink-4 border border-white/10 shadow-2xl flex flex-col items-center justify-center text-center p-8 gap-6">
+                    <div className="text-5xl">{q.emoji}</div>
+                    <div>
+                      <p className="text-lg font-semibold text-ember-light mb-1">{q.rightStatement}</p>
+                      <p className="text-xs text-muted-foreground">— swipe right —</p>
+                    </div>
+                    <div className="w-12 h-px bg-white/10" />
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">{q.leftStatement}</p>
+                      <p className="text-xs text-muted-foreground">— swipe left —</p>
+                    </div>
                   </div>
-                  <div className="w-12 h-px bg-white/10" />
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">{q.leftStatement}</p>
-                    <p className="text-xs text-muted-foreground">— swipe left —</p>
-                  </div>
-                </div>
-              )}
-              onSwipe={handleSwipe}
-              onComplete={finish}
-            />
+                )}
+                onSwipe={handleSwipe}
+                onComplete={finish}
+              />
+            </SwipeCursor>
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

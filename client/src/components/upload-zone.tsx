@@ -69,7 +69,7 @@ export function UploadZone({ onUpload }: UploadZoneProps) {
         className={`
           border-2 border-dashed rounded-xl p-12 text-center cursor-pointer
           transition-all duration-300
-          ${isDragActive ? "border-gold bg-gold/5" : "border-gold/30 hover:border-gold/60"}
+          ${isDragActive ? "border-ember bg-ember/5" : "border-ember/30 hover:border-ember/60"}
           ${uploading ? "opacity-50 cursor-not-allowed" : ""}
         `}
       >
@@ -79,8 +79,8 @@ export function UploadZone({ onUpload }: UploadZoneProps) {
           animate={isDragActive ? { scale: 1.05 } : { scale: 1 }}
           className="space-y-4"
         >
-          <div className="inline-flex p-4 rounded-full bg-gold/10">
-            <Upload className="w-8 h-8 text-gold" />
+          <div className="inline-flex p-4 rounded-full bg-ember/10">
+            <Upload className="w-8 h-8 text-ember" />
           </div>
           
           <div>
@@ -99,8 +99,8 @@ export function UploadZone({ onUpload }: UploadZoneProps) {
           )}
           
           {uploading && (
-            <div className="flex items-center justify-center gap-2 text-gold">
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-gold border-t-transparent" />
+            <div className="flex items-center justify-center gap-2 text-ember">
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-ember border-t-transparent" />
               <span>Uploading...</span>
             </div>
           )}
@@ -115,15 +115,15 @@ export function UploadZone({ onUpload }: UploadZoneProps) {
             exit={{ opacity: 0, y: -10 }}
             className={`
               p-4 rounded-lg flex items-center gap-3
-              ${status === "success" ? "bg-teal/10 border border-teal/20" : "bg-destructive/10 border border-destructive/20"}
+              ${status === "success" ? "bg-verdigris/10 border border-verdigris/20" : "bg-destructive/10 border border-destructive/20"}
             `}
           >
             {status === "success" ? (
-              <CheckCircle className="w-5 h-5 text-teal" />
+              <CheckCircle className="w-5 h-5 text-verdigris" />
             ) : (
               <AlertCircle className="w-5 h-5 text-destructive" />
             )}
-            <p className={`text-sm ${status === "success" ? "text-teal" : "text-destructive"}`}>
+            <p className={`text-sm ${status === "success" ? "text-verdigris" : "text-destructive"}`}>
               {message}
             </p>
           </motion.div>
