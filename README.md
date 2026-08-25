@@ -114,7 +114,7 @@ Base path `/api`. Full interactive docs at `/api/docs` once the server is runnin
 
 ## Card catalog
 
-23 real Indian cards, seeded from `server/database/seed_cards.py` — HDFC, SBI, ICICI, Axis, IDFC FIRST, Amex, Standard Chartered, Kotak, AU Bank. Seeding is idempotent (skips if cards already exist) and runs automatically at startup; `python -m database.seed_cards` also works standalone. Add cards by extending `cards_data` in that file.
+64 real Indian cards, seeded from `server/database/seed_cards.py` — HDFC, SBI, ICICI, Axis, IDFC FIRST, Amex, Standard Chartered, Kotak, AU Bank, HSBC, Federal Bank, Yes Bank, RBL, IndusInd, and BOBCARD. Seeding is idempotent (skips if cards already exist) and runs automatically at startup; `python -m database.seed_cards` also works standalone. Add cards by extending `cards_data` in that file.
 
 ## Tech stack
 
