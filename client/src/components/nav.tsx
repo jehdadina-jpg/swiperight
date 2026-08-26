@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,9 +22,8 @@ export function Nav() {
     <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-ink/75 backdrop-blur-lg">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-baseline gap-2">
-            <span className="font-heading italic text-xl">Swipe</span>
-            <span className="font-heading text-xl text-ember">Right</span>
+          <Link href="/" className="flex items-center">
+            <Image src="/logo.png" alt="SwipeRight" width={448} height={96} className="h-7 w-auto" priority />
           </Link>
           <nav className="flex items-center gap-1">
             {LINKS.map((link) => (

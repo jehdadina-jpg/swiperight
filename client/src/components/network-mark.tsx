@@ -40,6 +40,15 @@ export function NetworkMark({ network, className }: { network: string; className
     );
   }
 
+  if (key === "rupay") {
+    return (
+      <span className={`font-heading italic font-bold text-lg tracking-tight ${className ?? ""}`}>
+        <span className="text-[#f37021]">Ru</span>
+        <span className="text-[#0a8a3e]">Pay</span>
+      </span>
+    );
+  }
+
   return (
     <span className={`text-xs font-bold uppercase tracking-wider ${className ?? ""}`}>
       {network}

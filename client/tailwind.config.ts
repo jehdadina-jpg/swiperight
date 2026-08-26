@@ -46,10 +46,10 @@ const config: Config = {
         // Warm near-black scale - no blue undertone, closer to forged
         // metal / dark leather than "navy dashboard"
         ink: {
-          DEFAULT: "#0A0908",
-          2: "#141210",
-          3: "#1E1A16",
-          4: "#2A241D",
+          DEFAULT: "#0D0C0A",
+          2: "#171310",
+          3: "#221D18",
+          4: "#2E271F",
         },
         // The one signal color - ember/vermillion. Used sparingly:
         // primary actions, the swipe-right state, the #1 ranked card.

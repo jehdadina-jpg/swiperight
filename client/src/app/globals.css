@@ -5,12 +5,12 @@
 @layer base {
   :root {
     /* Warm near-black + one signal color (ember) - no blue undertone */
-    --background: 24 15% 4%;
-    --foreground: 36 30% 92%;
-    --card: 30 12% 8%;
-    --card-foreground: 36 30% 92%;
-    --popover: 30 12% 8%;
-    --popover-foreground: 36 30% 92%;
+    --background: 24 16% 6%;
+    --foreground: 36 32% 94%;
+    --card: 30 13% 10%;
+    --card-foreground: 36 32% 94%;
+    --popover: 30 13% 10%;
+    --popover-foreground: 36 32% 94%;
     --primary: 10 100% 56%;
     --primary-foreground: 24 15% 4%;
     --secondary: 165 26% 41%;
@@ -80,6 +80,15 @@
   @keyframes shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+  }
+
+  /* Soft ambient light blobs - reads as a bright, premium dark room rather
+     than a flat black page, without ever leaving dark mode. */
+  .ambient-glow {
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 15%, rgba(255,70,32,0.16), transparent 60%),
+      radial-gradient(ellipse 50% 45% at 85% 25%, rgba(78,133,119,0.14), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 50% 100%, rgba(255,130,89,0.08), transparent 65%);
   }
 }
 

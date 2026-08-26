@@ -13,7 +13,10 @@ function maskedNumber(id: number): string {
   return `•••• •••• •••• ${seed}`;
 }
 
-// Deterministic gradient per issuer so the same bank always looks the same
+// Deterministic gradient per issuer so the same bank always looks the same.
+// This is the card's "brand hue" - tier (below) decides how rich/premium
+// that hue is allowed to look, the way a real issuer's entry card and
+// flagship metal card share a brand but not a finish.
 const ISSUER_GRADIENTS: Record<string, string> = {
   "HDFC Bank": "from-[#3d2b1f] via-[#6b4a2f] to-[#c9962c]",
   "SBI Card": "from-[#1a2a52] via-[#2d4a8a] to-[#4a6fc7]",
@@ -24,8 +27,32 @@ const ISSUER_GRADIENTS: Record<string, string> = {
   "Standard Chartered": "from-[#3d1f0f] via-[#7a3d1f] to-[#c7702f]",
   "Kotak Mahindra Bank": "from-[#1f0f3d] via-[#4a1f7a] to-[#7a3dc7]",
   "AU Small Finance Bank": "from-[#0f3d1f] via-[#1f7a3d] to-[#3dc76f]",
+  "HSBC Bank": "from-[#3d0f0f] via-[#7a1f1f] to-[#c73d3d]",
+  "Federal Bank": "from-[#0f1f3d] via-[#1f3d7a] to-[#3d6fc7]",
+  "Yes Bank": "from-[#1f1f1f] via-[#3d3d3d] to-[#6b6b6b]",
+  "RBL Bank": "from-[#3d1f2a] via-[#7a1f4a] to-[#c73d7a]",
+  "IndusInd Bank": "from-[#1f2a0f] via-[#4a5c1f] to-[#8ca63d]",
+  "BOBCARD": "from-[#0f2a3d] via-[#1f557a] to-[#3da3c7]",
 };
 const DEFAULT_GRADIENT = "from-ink-4 via-ink-3 to-ink-2";
+
+/** Real issuers mostly reserve brushed-metal for one or two flagship products - matched by name, independent of fee. */
+const METAL_KEYWORDS = [
+  "infinia", "magnus", "reserve", "sapphiro", "diners club black", "select black",
+  "emeralde", "white reserve", "zenith", "ultimate", "eterna", "private", "platinum charge",
+];
+
+type Tier = "metal" | "gold" | "standard" | "entry";
+
+function getTier(card: SavedCard): Tier {
+  const name = card.name.toLowerCase();
+  if (card.annual_fee >= 10000 || METAL_KEYWORDS.some((k) => name.includes(k))) return "metal";
+  if (card.annual_fee === 0) return "entry";
+  if (card.annual_fee >= 5000) return "gold";
+  return "standard";
+}
+
+const METAL_GRADIENT = "from-[#2a2a2a] via-[#3d3d3d] to-[#131313]";
 
 const CHURN_STYLES: Record<string, string> = {
   low: "bg-verdigris/20 text-verdigris-light border-verdigris/30",
@@ -51,7 +78,10 @@ export function CreditCardVisual({ card, className, tilt = true, showSave = true
   const [hovering, setHovering] = useState(false);
   const { isSaved, toggle } = useSavedCards();
   const saved = isSaved(card.id);
-  const gradient = ISSUER_GRADIENTS[card.issuer] ?? DEFAULT_GRADIENT;
+  const tier = getTier(card);
+  const gradient = tier === "metal" ? METAL_GRADIENT : ISSUER_GRADIENTS[card.issuer] ?? DEFAULT_GRADIENT;
+  const sheenOpacity = tier === "entry" ? 0.55 : hovering ? 0.9 : 0.45;
+  const initial = card.issuer.replace(/^The\s+/i, "").trim().charAt(0).toUpperCase();
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
@@ -85,24 +115,44 @@ export function CreditCardVisual({ card, className, tilt = true, showSave = true
           gradient
         )}
       >
+        {/* Brushed-metal grain - only the flagship metal tier gets this, like the real cards */}
+        {tier === "metal" && (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay"
+            style={{
+              background:
+                "repeating-linear-gradient(100deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 3px)",
+            }}
+          />
+        )}
+        {/* Issuer initial, oversized and faint - the watermark real premium cards carry */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-3 -bottom-8 font-heading font-bold leading-none select-none text-white/[0.07]"
+          style={{ fontSize: compact ? "5rem" : "8rem" }}
+        >
+          {initial}
+        </span>
         {/* Foil/holographic sheen - a soft light source that follows the cursor */}
         <div
           className="pointer-events-none absolute inset-0 mix-blend-overlay transition-opacity duration-300"
           style={{
-            opacity: hovering ? 0.9 : 0.45,
+            opacity: sheenOpacity,
             background: `radial-gradient(circle at ${pointer.x * 100}% ${pointer.y * 100}%, rgba(255,255,255,0.55), transparent 55%)`,
           }}
         />
         {/* Holographic strip - hue-shifting diagonal band, catches "light" as pointer moves */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.15] mix-blend-color-dodge transition-transform duration-200 ease-out"
-          style={{
-            background:
-              "linear-gradient(115deg, transparent 20%, #ff6ec7 32%, #7dd3fc 40%, #a78bfa 48%, #fca5a5 56%, transparent 68%)",
-            backgroundSize: "250% 250%",
-            transform: `translate(${(pointer.x - 0.5) * 30}%, ${(pointer.y - 0.5) * 30}%)`,
-          }}
-        />
+        {tier !== "entry" && (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.15] mix-blend-color-dodge transition-transform duration-200 ease-out"
+            style={{
+              background:
+                "linear-gradient(115deg, transparent 20%, #ff6ec7 32%, #7dd3fc 40%, #a78bfa 48%, #fca5a5 56%, transparent 68%)",
+              backgroundSize: "250% 250%",
+              transform: `translate(${(pointer.x - 0.5) * 30}%, ${(pointer.y - 0.5) * 30}%)`,
+            }}
+          />
+        )}
         <div className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
 
         {rank && (
