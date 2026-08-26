@@ -33,6 +33,21 @@ CATEGORY_TO_TAG_MAP = {
     "Others": "cashback"
 }
 
+# Seed data spells out a monthly cap under several different keys depending on
+# which issuer page it was sourced from ("monthly", "cashback_monthly",
+# "monthly_online", ...). Recognized in priority order; the first one present
+# wins.
+REWARD_CAP_KEYS = ["monthly", "cashback_monthly", "monthly_online"]
+
+# Most seeded cards don't list an explicit cap for their bonus category at
+# all (empty reward_caps dict) - real Indian cards essentially never leave a
+# 2X-10X multiplier or elevated cashback rate uncapped. Rather than let those
+# categories earn an unlimited rate (which is how a ₹1.5L single-category
+# slider turned into a ₹49,500 "reward" from one 10X dining card), fall back
+# to this conservative monthly ceiling - it sits in the middle of the range
+# actually observed across the cards that DO specify one (₹500-3,000/month).
+DEFAULT_MONTHLY_BONUS_CAP = 2000
+
 
 class RecommendationEngine:
     """Recommendation Engine - ranks credit cards by fit and returns the top N"""
@@ -166,12 +181,16 @@ class RecommendationEngine:
         # Apply milestone bonuses
         milestone_bonus = self._calculate_milestone_bonus(card, total_yearly_spend)
         total_rewards += milestone_bonus
-        
+
         # Calculate net annual benefit (rewards - annual fee)
         net_annual_benefit = total_rewards - card.annual_fee
-        
-        # Calculate effective reward rate
-        effective_reward_rate = (total_rewards / total_yearly_spend * 100) if total_yearly_spend > 0 else 0
+
+        # Effective reward rate reflects the ongoing per-spend earn rate, so
+        # it's computed before the milestone bonus is added - a one-time
+        # lump sum isn't a "rate" and would otherwise inflate this figure
+        # for cards with large milestone payouts relative to spend.
+        category_rewards_total = total_rewards - milestone_bonus
+        effective_reward_rate = (category_rewards_total / total_yearly_spend * 100) if total_yearly_spend > 0 else 0
         
         # Calculate breakeven spend (spend needed to offset annual fee)
         base_reward_rate = card.reward_rate / 100
@@ -179,11 +198,11 @@ class RecommendationEngine:
         
         # Calculate final score based on strategy
         if strategy == "rule_based":
-            score = self._rule_based_score(card, category_totals, net_annual_benefit)
+            score = self._rule_based_score(card, category_totals, net_annual_benefit, total_yearly_spend)
         elif strategy == "ml":
             score = self._ml_based_score(card, category_totals, net_annual_benefit)
         else:  # hybrid
-            rule_score = self._rule_based_score(card, category_totals, net_annual_benefit)
+            rule_score = self._rule_based_score(card, category_totals, net_annual_benefit, total_yearly_spend)
             ml_score = self._ml_based_score(card, category_totals, net_annual_benefit) if self.model else 0
             score = (rule_score + ml_score) / 2 if self.model else rule_score
         
@@ -209,45 +228,60 @@ class RecommendationEngine:
         amount: float
     ) -> float:
         """Calculate reward for a specific category spend"""
-        
+
         base_reward_rate = card.reward_rate / 100
-        reward = amount * base_reward_rate
-        
-        # Check for category-specific benefits
-        tag = CATEGORY_TO_TAG_MAP.get(category, "cashback")
-        
+        base_reward = amount * base_reward_rate
+        reward = base_reward
+        is_elevated = False
+
         # Apply multipliers based on card benefits
         if category == "Dining" and card.dining_benefits:
             multiplier = card.dining_benefits.get("reward_multiplier", 1)
             cashback_rate = card.dining_benefits.get("cashback", 0)
             reward = max(reward * multiplier, amount * cashback_rate / 100)
-        
+            is_elevated = multiplier > 1 or cashback_rate > 0
+
         elif category == "Travel" and card.travel_benefits:
             multiplier = card.travel_benefits.get("reward_multiplier", 1)
             cashback_rate = card.travel_benefits.get("cashback", 0)
             reward = max(reward * multiplier, amount * cashback_rate / 100)
-        
+            is_elevated = multiplier > 1 or cashback_rate > 0
+
         elif category == "Fuel" and card.fuel_benefits:
             cashback_rate = card.fuel_benefits.get("cashback", 0)
             surcharge_waiver = card.fuel_benefits.get("surcharge_waiver", "0%")
             waiver_rate = float(surcharge_waiver.rstrip('%')) / 100 if surcharge_waiver else 0
-            reward = max(reward, amount * cashback_rate / 100, amount * waiver_rate)
-        
+            # cashback_rate is a total earn rate (same semantics as the
+            # dining/travel/shopping cashback fields) so it replaces the base
+            # reward, it doesn't stack with it. The surcharge waiver is a
+            # genuinely separate benefit - a fee you don't pay at all - so
+            # that part does add on top.
+            reward = max(reward, amount * cashback_rate / 100) + amount * waiver_rate
+            is_elevated = cashback_rate > 0
+
         elif category in ["Shopping", "Groceries"] and card.shopping_benefits:
             multiplier = card.shopping_benefits.get("reward_multiplier", 1)
             cashback_rate = card.shopping_benefits.get("cashback", 0)
             reward = max(reward * multiplier, amount * cashback_rate / 100)
-        
-        # Apply reward caps if specified
-        if card.reward_caps:
-            monthly_cap = card.reward_caps.get("monthly", None)
+            is_elevated = multiplier > 1 or cashback_rate > 0
+
+        # Apply reward caps - explicit per-category cap first, then a
+        # monthly-wide cap, then (for elevated categories the data doesn't
+        # cap at all) a conservative default so nothing earns an unlimited
+        # rate.
+        category_cap = (card.reward_caps or {}).get(category.lower())
+        if category_cap:
+            reward = min(reward, category_cap)
+        else:
+            monthly_cap = next(
+                (card.reward_caps[k] for k in REWARD_CAP_KEYS if card.reward_caps and card.reward_caps.get(k)),
+                None,
+            )
             if monthly_cap:
-                reward = min(reward, monthly_cap * 12)  # Annual cap
-            
-            category_cap = card.reward_caps.get(category.lower(), None)
-            if category_cap:
-                reward = min(reward, category_cap)
-        
+                reward = min(reward, monthly_cap * 12)
+            elif is_elevated:
+                reward = min(reward, base_reward + DEFAULT_MONTHLY_BONUS_CAP * 12)
+
         return reward
     
     def _calculate_milestone_bonus(self, card: Card, yearly_spend: float) -> float:
@@ -268,15 +302,22 @@ class RecommendationEngine:
         self,
         card: Card,
         category_totals: Dict[str, float],
-        net_annual_benefit: float
+        net_annual_benefit: float,
+        total_yearly_spend: float
     ) -> float:
         """Rule-based scoring algorithm"""
-        
+
         score = 0.0
-        
-        # Weight 1: Net annual benefit (40% weight)
-        score += net_annual_benefit * 0.4
-        
+
+        # Weight 1: Net annual benefit (40% weight). Normalized to "net
+        # benefit as a % of yearly spend" rather than a raw rupee figure -
+        # the other three components all sit on a 0-100 scale, and mixing
+        # in a raw currency amount here let a handful of high-fee premium
+        # cards' large ₹ benefit swamp category fit / fee preference
+        # entirely, regardless of weighting.
+        net_benefit_pct = (net_annual_benefit / total_yearly_spend * 100) if total_yearly_spend > 0 else 0
+        score += net_benefit_pct * 0.4
+
         # Weight 2: Category matching (30% weight)
         total_spend = sum(category_totals.values())
         category_match_score = 0.0
