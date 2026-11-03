@@ -5,7 +5,7 @@ import urllib.request
 from playwright.sync_api import sync_playwright
 
 APP = "http://localhost:5173"
-API = "http://localhost:8100"
+API = "http://localhost:8000"
 OUT = "figs"
 
 

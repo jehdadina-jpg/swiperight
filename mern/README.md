@@ -11,7 +11,7 @@ This is the MongoDB / Express / React / Node edition. The FastAPI + Next.js prot
 | Database | MongoDB, Mongoose 8 |
 | API | Node 18+, Express 4, zod, JWT, helmet, express-rate-limit |
 | Statement parsing | `csv-parse`, `pdf-parse`, multer (memory storage) |
-| Client | React 18, Vite 5, TypeScript, react-router 6, Zustand, Tailwind, Framer Motion, Recharts |
+| Client | React 18, Vite 5, react-router 6, Zustand, Tailwind, Framer Motion, Recharts |
 | Tests | `node:test`, supertest, mongodb-memory-server |
 
 ## Run it

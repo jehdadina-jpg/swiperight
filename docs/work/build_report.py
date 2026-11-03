@@ -148,7 +148,7 @@ a(tbl("Non-functional requirements", ["Category", "Requirement"], [
 
 a(h2("2.3 MERN Technology Stack"))
 a(tbl("Technology stack", ["Layer", "Technology", "Purpose"], [
-    ["Frontend", "React 18, Vite 5, TypeScript, react-router 6", "UI, components and client-side routing"],
+    ["Frontend", "React 18, Vite 5, react-router 6", "UI, components and client-side routing"],
     ["Frontend libraries", "Tailwind CSS, Framer Motion, Recharts, Zustand, Axios, react-dropzone, html-to-image", "Styling, swipe animation, spending chart, client state, HTTP, file upload, card image export"],
     ["Backend", "Node.js 18+ with Express.js 4", "Server and REST APIs"],
     ["Backend libraries", "Mongoose, zod, jsonwebtoken, bcryptjs, multer, csv-parse, pdf-parse, helmet, cors, express-rate-limit, morgan", "ODM, validation, authentication, uploads, statement parsing, security and logging"],
@@ -244,7 +244,7 @@ a(fig("ui_expenses.png", "Expense tracker (signed-in user)", 6800))
 a(p("The layout is responsive: grids collapse to a single column on narrow screens, and the navigation and forms remain usable at phone width."))
 
 a(h2("4.2 Frontend Implementation"))
-a(p("The client is a single-page React application written in TypeScript. `main.tsx` mounts the app inside a `BrowserRouter`; `App.tsx` declares the routes with "
+a(p("The client is a single-page React application written in JavaScript (JSX). `main.jsx` mounts the app inside a `BrowserRouter`; `App.jsx` declares the routes with "
     "react-router. The landing, login and register pages render on their own, while the other pages share an `AppLayout` that renders the navigation bar and a "
     "route-transition wrapper around an `<Outlet />`."))
 for b in [
@@ -391,7 +391,7 @@ a(tbl("Challenges and solutions", ["Challenge", "Solution", "Outcome"], [
     ["PDF statements produced zero or wrong transactions: times such as 11:22 were read as amounts and ordinal dates such as 1st November were missed.", "Required paise on amounts, added month-name and ordinal date parsing, took the first amount on a line rather than the running balance, and treated a leading \"credit\" as direction.", "Text statements are parsed correctly in tests; scanned PDFs remain unsupported."],
     ["CSV exports with a single Amount column counted salary credits as spending.", "Read Dr/Cr and Type columns, CR/DR suffixes and signs to decide direction, and counted only debits in category totals.", "Income no longer inflates spend."],
     ["A statement covers one month but rewards are yearly.", "Measured the date span of the transactions and scaled totals to 12 months before scoring.", "Monthly statements and slider estimates are comparable."],
-    ["Porting the prototype from FastAPI and Next.js to a pure MERN stack while keeping the UI.", "Re-implemented the engine, parser and models in Node and Mongoose, replaced Next.js with Vite and react-router behind thin compatibility helpers, and renamed API fields to camelCase.", "Same interface on a MERN stack, type-checked and production-built."],
+    ["Porting the prototype from FastAPI and Next.js to a pure MERN stack while keeping the UI.", "Re-implemented the engine, parser and models in Node and Mongoose, replaced Next.js with Vite and react-router behind thin compatibility helpers, and renamed API fields to camelCase.", "Same interface on a MERN stack, production-built."],
 ], [2700, 4126, 2200]))
 
 a(h2("7.2 Individual Contributions"))
@@ -433,7 +433,7 @@ REFS = [
     "Vite, \"Vite guide,\" https://vite.dev/guide/.",
     "React Router, \"React Router v6 documentation,\" https://reactrouter.com/.",
     "M. Jones, J. Bradley and N. Sakimura, \"JSON Web Token (JWT),\" RFC 7519, IETF, 2015.",
-    "C. McDonnell, \"Zod: TypeScript-first schema validation,\" https://zod.dev/.",
+    "C. McDonnell, \"Zod: schema validation,\" https://zod.dev/.",
     "Tailwind Labs, \"Tailwind CSS documentation,\" https://tailwindcss.com/docs.",
     "Framer, \"Motion for React documentation,\" https://motion.dev/docs/react.",
     "Node.js, \"Test runner (node:test),\" https://nodejs.org/api/test.html.",

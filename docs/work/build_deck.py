@@ -252,7 +252,7 @@ s = content_slide("2  Technology stack", "MongoDB, Express, React, Node",
                   "Tests run on an in-memory Mongo so they never touch real data.")
 cols = [("M", "MongoDB", "Mongoose ODM", ["7 collections", "Indexes on user, date, name", "Unique (user, card)", "Seeded with 64 cards"]),
         ("E", "Express.js", "REST API", ["zod validation", "JWT + bcrypt", "helmet, cors, rate limit", "multer in-memory uploads"]),
-        ("R", "React 18", "Vite, TypeScript", ["react-router, Zustand", "Tailwind, Framer Motion", "Recharts, Axios", "html-to-image export"]),
+        ("R", "React 18", "Vite, JavaScript", ["react-router, Zustand", "Tailwind, Framer Motion", "Recharts, Axios", "html-to-image export"]),
         ("N", "Node.js 18+", "Services", ["Statement parser", "Categoriser", "Recommendation engine", "node:test + supertest"])]
 for i, (letter, h, sub, items) in enumerate(cols):
     x = MX + i * 3.07
