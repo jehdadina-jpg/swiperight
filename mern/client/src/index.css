@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Warm near-black + one signal color (ember) - no blue undertone */
+    --background: 24 16% 6%;
+    --foreground: 36 32% 94%;
+    --card: 30 13% 10%;
+    --card-foreground: 36 32% 94%;
+    --popover: 30 13% 10%;
+    --popover-foreground: 36 32% 94%;
+    --primary: 10 100% 56%;
+    --primary-foreground: 24 15% 4%;
+    --secondary: 165 26% 41%;
+    --secondary-foreground: 36 30% 92%;
+    --muted: 30 10% 14%;
+    --muted-foreground: 30 8% 62%;
+    --accent: 165 26% 41%;
+    --accent-foreground: 36 30% 92%;
+    --destructive: 4 75% 48%;
+    --destructive-foreground: 36 30% 92%;
+    --border: 30 12% 16%;
+    --input: 30 12% 16%;
+    --ring: 10 100% 56%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-ink text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .glass-morphism {
+    @apply bg-white/5 backdrop-blur-lg border border-white/10;
+  }
+  
+  .gradient-ember {
+    @apply bg-gradient-to-r from-ember-dark via-ember to-ember-light;
+  }
+  
+  .gradient-verdigris {
+    @apply bg-gradient-to-r from-verdigris-dark via-verdigris to-verdigris-light;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Soft ambient light blobs - reads as a bright, premium dark room rather
+     than a flat black page, without ever leaving dark mode. */
+  .ambient-glow {
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 15%, rgba(255,70,32,0.16), transparent 60%),
+      radial-gradient(ellipse 50% 45% at 85% 25%, rgba(78,133,119,0.14), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 50% 100%, rgba(255,130,89,0.08), transparent 65%);
+  }
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #141210;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a241d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a332a;
+}
+
+:root {
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}

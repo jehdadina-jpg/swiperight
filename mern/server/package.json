@@ -1,0 +1,35 @@
+{
+  "name": "swiperight-mern-server",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SwipeRight - Express + MongoDB API for credit card recommendations",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "dev:mem": "node src/dev-memory.js",
+    "seed": "node src/seed-cli.js",
+    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/api.test.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.1",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "csv-parse": "^5.5.6",
+    "pdf-parse": "1.1.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^10.0.0",
+    "supertest": "^7.0.0"
+  }
+}

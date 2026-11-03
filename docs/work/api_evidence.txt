@@ -1,0 +1,21 @@
+$ GET /api/cards?search=infinia&limit=1
+HTTP 200
+[{"name": "HDFC Infinia Metal", "issuer": "HDFC Bank", "network": "Visa", "annualFee": 12500, "rewardRate": 3.3, "loungeAccess": true}]
+
+$ POST /api/recommendations  (spend Rs 4.68L/yr over 5 categories, topN 3)
+HTTP 200
+#1 HDFC Regalia Gold            net Rs   13,340  rate  3.38%  score 39.56
+#2 Tata Neu Infinity HDFC Bank  net Rs    9,436  rate  2.34%  score 34.46
+#3 Axis Bank SELECT             net Rs   15,810  rate  4.02%  score 33.51
+
+$ POST /api/recommendations  (invalid: negative amount)
+HTTP 400
+{"error": "manualCategoryTotals.Dining: Number must be greater than or equal to 0"}
+
+$ POST /api/auth/login  (wrong password)
+HTTP 401
+{"error": "Incorrect email or password"}
+
+$ POST /api/expenses  (no token)
+HTTP 401
+{"error": "Please sign in to continue"}

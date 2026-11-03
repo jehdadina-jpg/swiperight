@@ -1,0 +1,42 @@
+
+> swiperight-mern-server@2.0.0 test
+> node --test --test-concurrency=1 tests/unit.test.js tests/api.test.js
+
+✔ health reports database connected (2005.1904ms)
+✔ catalogue is seeded with 64 cards (44.658ms)
+✔ cards: search, filter and sort (61.3622ms)
+✔ cards: bad query is rejected, unknown id is 404 (21.9445ms)
+✔ auth: register, duplicate, bad input, login, me (419.5194ms)
+✔ expenses: full CRUD with validation and ownership (238.4958ms)
+✔ saved cards: add, idempotent add, note update, remove (84.3068ms)
+✔ recommendations: manual spend returns five ranked, sane results (34.1187ms)
+✔ recommendations: preferences are respected (33.3802ms)
+✔ recommendations: bad requests are 400 with a message (26.1812ms)
+✔ recommendations: signed-in user can score their own expenses (26.7948ms)
+✔ statements: CSV upload is parsed, categorised, annualised and usable (52.1681ms)
+✔ statements: rejects wrong type, missing file and empty content (17.0259ms)
+✔ admin catalogue writes need an admin (11.408ms)
+✔ unknown routes and malformed JSON are handled (8.9033ms)
+✔ categorizer: merchants map to the right category (2.8103ms)
+✔ categorizer: short tokens are word-bounded (0.7189ms)
+✔ parseDate: Indian day-first formats and month names (2.0391ms)
+✔ CSV parser: debit/credit columns and Dr/Cr type column (7.1308ms)
+✔ CSV parser: semicolon delimiter and duplicate rows (0.8473ms)
+✔ PDF text parser: picks the first amount, ignores times and running balance (1.0964ms)
+✔ categoryTotals: credits are not counted as spending (0.3807ms)
+✔ periodDaysOf: one month of data spans ~30 days (0.2189ms)
+✔ engine: unlisted bonus category is capped, not unlimited (0.437ms)
+✔ engine: explicit monthly cap wins over multiplier (0.2523ms)
+✔ engine: fuel cashback replaces base, surcharge waiver adds (0.1622ms)
+✔ engine: effective rate excludes milestone bonus; net = rewards - fee (0.553ms)
+✔ engine: score stays on a 0-100 scale for ordinary spend (0.2888ms)
+✔ engine: a headline rate is not applied to every category (0.1511ms)
+✔ engine: partner-only boosts apply to a share of the category (0.1641ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7432.5629
